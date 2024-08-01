@@ -1,0 +1,47 @@
+* {
+   font-family: "Noto Sans KR", sans-serif;
+   font-optical-sizing: auto;
+   font-weight: 400;
+   font-style: normal;
+}
+    .gray0{
+        color:#f8f9fa;
+    }
+    .gray1{
+        color:#f1f3f5;
+    }
+    .gray2{
+        color:#e9ecef;
+    }
+    .gray3{
+        color:#dee2e6;
+    }
+    .gray3-border{
+        border:1px solid #dee2e6;
+    }
+    .gray4{
+        color:#ced4da;
+    }
+    .gray4-border{
+        border :1px solid #ced4da;
+    }
+    .gray5{
+        background:#adb5bd;
+    }
+    .gray6{
+        color:#868e96;
+    }
+    .gray7{
+        color:#495057;
+    }
+    .gray8{
+        color:#343a40;
+    }
+    .gray9{
+        color:#212529;
+    }
+
+    .footer-copy{
+        font-size: 14px;
+        color:#495057;
+    }
