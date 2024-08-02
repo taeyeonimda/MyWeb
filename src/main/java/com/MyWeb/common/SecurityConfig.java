@@ -9,12 +9,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final DefaultOAuth2UserService oAuth2UserService;
 
+    public SecurityConfig(DefaultOAuth2UserService oAuth2UserService) {
+        this.oAuth2UserService = oAuth2UserService;
+    }
 
     /**
      * 정적 리소스는 시큐리티 상관없이 접근 가능
@@ -48,9 +53,16 @@ public class SecurityConfig {
                         .usernameParameter("userEmail")
                         .passwordParameter("userPwd")
                         .defaultSuccessUrl("/", true)
-                )
-                .userDetailsService(userService);
-
+                ).oauth2Login(oauth2Login -> oauth2Login
+                        .loginPage("/loginPage")
+                        .defaultSuccessUrl("/",true)
+                ).logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                );
         return http.build();
     }
 
