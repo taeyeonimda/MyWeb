@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Daum 주소찾기 -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .error {
+            border: 1px solid red;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>회원가입</h1>
+    <form id="registerForm" th:action="@{/register}" method="post">
+        <div class="mb-3">
+            <label for="email" class="form-label">이메일</label>
+            <input type="email" class="form-control" id="email" name="userEmail" placeholder="이메일을 입력하세요" required>
+            <span class="spanClass" id="emailError"></span>
+        </div>
+        <div class="mb-3">
+            <label for="passwordInput" class="form-label">패스워드</label>
+            <input type="password" class="form-control" id="passwordInput" name="userPwd" placeholder="패스워드를 입력하세요" required>
+            <span class="spanClass" id="passwordError"></span>
+        </div>
+        <div class="mb-3">
+            <label for="passwordInput2" class="form-label">패스워드 확인</label>
+            <input type="password" class="form-control" id="passwordInput2" placeholder="패스워드를 다시 입력하세요" required>
+            <span class="spanClass" id="passwordError2"></span>
+        </div>
+        <div class="mb-3">
+            <label for="nicknameInput" class="form-label">닉네임</label>
+            <input type="text" class="form-control" id="nicknameInput" name="nickname" placeholder="닉네임을 입력하세요" maxlength="12" required>
+            <span class="spanClass" id="nickError"></span>
+        </div>
+        <div class="mb-3">
+            <label for="addressInput" class="form-label">주소</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="addressInput" name="address" readonly="readonly" placeholder="주소를 입력하세요" required>
+                <button class="btn btn-primary" type="button" onclick="findAddress()">주소 찾기</button>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="address2" class="form-label">상세주소</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="address2" name="address2" placeholder="상세 주소를 입력하세요" required>
+            </div>
+        </div>
+        <button id="submitBtn" type="button" onclick="sendForm()" class="btn btn-primary">가입하기</button>
+    </form>
+</div>
+
+<script>
+    function findAddress() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                let addr = '';
+                let extraAddr = '';
+
+                if (data.userSelectedType === 'R') {
+                    addr = data.roadAddress;
+                } else {
+                    addr = data.jibunAddress;
+                }
+
+                if (data.userSelectedType === 'R') {
+                    if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+                        extraAddr += data.bname;
+                    }
+                    if (data.buildingName !== '' && data.apartment === 'Y') {
+                        extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                    }
+                    if (extraAddr !== '') {
+                        extraAddr = ' (' + extraAddr + ')';
+                    }
+                } else {
+                    extraAddr = '';
+                }
+
+                document.getElementById("addressInput").value = addr + ' ' + extraAddr;
+                document.getElementById("address2").focus();
+            }
+        }).open();
+    }
+
+    document.getElementById('email').addEventListener('keydown', preventSpaceInput);
+    document.getElementById('email').addEventListener('input', checkEmail);
+
+    document.getElementById('passwordInput').addEventListener('keydown', preventSpaceInput);
+    document.getElementById('passwordInput').addEventListener('input', checkPassword);
+
+    document.getElementById('passwordInput2').addEventListener('input', checkConfirmPassword);
+
+    document.getElementById('nicknameInput').addEventListener('keydown', preventSpaceInput);
+    document.getElementById('nicknameInput').addEventListener('input', checkNickname);
+
+    async function checkEmail() {
+        const emailInput = document.getElementById('email');
+        const emailError = document.getElementById('emailError');
+        const email = emailInput.value.trim();
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.(com)$/i;
+
+        emailError.textContent = '';
+        emailError.classList.remove('spanError');
+
+        if (email.length > 0 && !emailRegex.test(email)) {
+            emailError.textContent = '유효한 이메일 형식이 아닙니다.';
+            emailError.style.color = 'red';
+            emailError.classList.add('spanError');
+        } else if (email.length > 0) {
+            try {
+                console.log('여기는되니 =>',email);
+                const response = await axios.post('/user/checkEmail', new URLSearchParams({ userEmails: email }));
+                const result = response.data;
+
+                console.log('받아오는 데이터1 ->', response);
+                console.log('받아오는 데이터2 ->', result);
+                console.log(typeof result);
+                if (result == 1) {
+                    emailError.textContent = '중복된 이메일입니다.';
+                    emailError.style.color = 'red';
+                    emailError.classList.add('spanError');
+                } else {
+                    emailError.textContent = '가입 가능한 이메일입니다.';
+                    emailError.style.color = 'green';
+                    emailError.classList.remove('spanError');
+                }
+            } catch (error) {
+                emailError.textContent = '서버 요청 중 오류가 발생했습니다.';
+                emailError.style.color = 'red';
+            }
+        }
+    }
+
+    function checkPassword() {
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordError = document.getElementById('passwordError');
+        const password = passwordInput.value.trim();
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()]).{8,}$/;
+        let characterCount = 0;
+
+        if (password.match(/[A-Z]/)) characterCount++;
+        if (password.match(/[a-z]/)) characterCount++;
+        if (password.match(/\d/)) characterCount++;
+        if (password.match(/[!@#$%^&*()]/)) characterCount++;
+
+        passwordError.textContent = '';
+        passwordError.classList.remove('spanError');
+
+        if (password.length !== 0 && (password.length < 8 || characterCount < 3)) {
+            passwordError.textContent = '영소문자, 대문자, 숫자, 특수기호 중 3가지를 사용해주세요.';
+            passwordError.style.color = 'red';
+            passwordError.classList.add('spanError');
+        } else {
+            passwordError.textContent = '';
+            passwordError.classList.remove('spanError');
+        }
+    }
+
+    function checkConfirmPassword() {
+        const password = document.getElementById('passwordInput').value.trim();
+        const confirmPassword = document.getElementById('passwordInput2').value.trim();
+        const passwordError2 = document.getElementById('passwordError2');
+
+        passwordError2.textContent = '';
+        passwordError2.classList.remove('spanError');
+
+        if (password !== confirmPassword) {
+            passwordError2.textContent = '패스워드가 일치하지 않습니다.';
+            passwordError2.style.color = 'red';
+            document.getElementById('passwordInput2').classList.add('error');
+            passwordError2.classList.add('spanError');
+        } else {
+            passwordError2.textContent = '';
+            document.getElementById('passwordInput2').classList.remove('error');
+            passwordError2.classList.remove('spanError');
+
+        }
+    }
+
+    async function checkNickname() {
+        const nickInput = document.getElementById('nicknameInput');
+        const nickError = document.getElementById('nickError');
+        const nick = nickInput.value.trim();
+
+        nickError.textContent = '';
+        nickError.classList.remove('spanError');
+
+        if (nick.length >= 1) {
+            try {
+                const response = await axios.post('/user/checkNickName', new URLSearchParams({ nickName: nick }));
+                const result = response.data;
+                console.log('체크닉네임 받아오는 result => ',result);
+                if (result == 'duplicate') {
+                    nickError.textContent = '중복된 닉네임입니다.';
+                    nickError.style.color = 'red';
+                    nickError.classList.add('spanError');
+                    disableSubmitButton();
+                } else {
+                    nickError.textContent = '사용 가능한 닉네임입니다.';
+                    nickError.style.color = 'green';
+                    nickError.classList.remove('spanError');
+                    enableSubmitButton();
+                }
+            } catch (error) {
+                nickError.textContent = '서버 요청 중 오류가 발생했습니다.';
+                nickError.style.color = 'red';
+            }
+        } else {
+            enableSubmitButton();
+        }
+    }
+
+    async function sendForm() {
+        const requiredFields = ["email", "passwordInput", "passwordInput2", "nicknameInput", "addressInput", "address2"];
+        const requiredCheckError = ["emailError", "passwordError", "passwordError2", "nickError"];
+        let isValid = true;
+
+        for (let fieldId of requiredFields) {
+            const fieldVal = document.getElementById(fieldId).value.trim();
+            if (fieldVal === '') {
+                isValid = false;
+                break;
+            }
+        }
+
+        let hasErrorClass = false;
+        for (let errorId of requiredCheckError) {
+            const errorElement = document.getElementById(errorId);
+            if (errorElement.classList.contains('spanError')) {
+                hasErrorClass = true;
+                break;
+            }
+        }
+
+        if (isValid && !hasErrorClass) {
+            try {
+                // const response = await axios.post('/user/register', new URLSearchParams({
+                //     userEmail: document.getElementById("email").value,
+                //     userPwd: document.getElementById("passwordInput").value,
+                //     nickName: document.getElementById("nicknameInput").value,
+                //     address: document.getElementById("addressInput").value,
+                //     address2: document.getElementById("address2").value
+                // }));
+
+                const response = await axios.post('/user/register', {
+                    userEmail: document.getElementById("email").value,
+                    userPwd: document.getElementById("passwordInput").value,
+                    nickName: document.getElementById("nicknameInput").value,
+                    address: document.getElementById("addressInput").value,
+                    address2: document.getElementById("address2").value
+                });
+
+                const result = response.data;
+                if (result === 'success') {
+                    alert('회원가입에 성공했습니다.');
+                    window.location.href = '/';
+                } else {
+                    alert(result);
+                }
+            } catch (error) {
+                alert('서버 요청 중 오류가 발생했습니다.');
+            }
+        } else {
+            alert("필수 입력란을 확인하세요.");
+        }
+    }
+
+    function disableSubmitButton() {
+        document.getElementById('submitBtn').disabled = true;
+    }
+
+    function enableSubmitButton() {
+        document.getElementById('submitBtn').disabled = false;
+    }
+
+    function preventSpaceInput(event) {
+        if (event.keyCode === 32) {
+            event.preventDefault();
+        }
+    }
+</script>
+</body>
+</html>

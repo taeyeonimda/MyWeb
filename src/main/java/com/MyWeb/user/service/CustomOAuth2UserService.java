@@ -15,11 +15,9 @@ import java.util.Optional;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
-    private final UserService userService;
     private final UserRepository userRepository;
 
-    public CustomOAuth2UserService(UserService userService, UserRepository userRepository) {
-        this.userService = userService;
+    public CustomOAuth2UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

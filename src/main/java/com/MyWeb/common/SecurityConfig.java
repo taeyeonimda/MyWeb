@@ -1,11 +1,13 @@
 package com.MyWeb.common;
 
 import com.MyWeb.user.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,11 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final DefaultOAuth2UserService oAuth2UserService;
-
-    public SecurityConfig(DefaultOAuth2UserService oAuth2UserService) {
-        this.oAuth2UserService = oAuth2UserService;
-    }
 
     /**
      * 정적 리소스는 시큐리티 상관없이 접근 가능
@@ -34,12 +31,13 @@ public class SecurityConfig {
      * WHITE LIST 등록 시큐리티 상관없이 접근 가능한 URL 등록
      */
     private static final String[] WHITE_LIST= {
-            "/",
-            "/loginPage"
+            "/", "/loginPage", "/newUser", "/user/checkEmail", "/user/checkNickName", "/user/register"
     };
 
+
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, UserService userService) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
                 .csrf( csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize ->
@@ -65,6 +63,9 @@ public class SecurityConfig {
                 );
         return http.build();
     }
+
+
+
 
     @Bean
     public PasswordEncoder PasswordEncoder () {
