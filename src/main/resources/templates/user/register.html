@@ -241,14 +241,6 @@
 
         if (isValid && !hasErrorClass) {
             try {
-                // const response = await axios.post('/user/register', new URLSearchParams({
-                //     userEmail: document.getElementById("email").value,
-                //     userPwd: document.getElementById("passwordInput").value,
-                //     nickName: document.getElementById("nicknameInput").value,
-                //     address: document.getElementById("addressInput").value,
-                //     address2: document.getElementById("address2").value
-                // }));
-
                 const response = await axios.post('/user/register', {
                     userEmail: document.getElementById("email").value,
                     userPwd: document.getElementById("passwordInput").value,
@@ -268,7 +260,7 @@
                 alert('서버 요청 중 오류가 발생했습니다.');
             }
         } else {
-            alert("필수 입력란을 확인하세요.");
+            alert("메시지를 확인해 주세요.");
         }
     }
 

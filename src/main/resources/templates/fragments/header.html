@@ -59,7 +59,7 @@
                     <th:block th:with="value=${currentUser.profilePhoto}">
 
                         <div th:if="${value != null}">
-                            <img th:src="@{'/images/user/' + ${currentUser.profilePhoto}}"
+                            <img th:src="@{'/uploads/user/' + ${currentUser.profilePhoto}}"
                                  alt="프로필 사진"
                                  style="width:40px;"
                                  class="rounded-pill">

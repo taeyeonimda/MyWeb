@@ -31,6 +31,9 @@ public class User {
 
     @Column(name = "address")
     private String address;
+
+    @Column(name = "address2")
+    private String address2;
     /**
      * 0.일반가입1.카카오2.네이버3.구글
      */

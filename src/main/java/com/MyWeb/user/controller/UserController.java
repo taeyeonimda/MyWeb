@@ -1,25 +1,42 @@
 package com.MyWeb.user.controller;
 
+import com.MyWeb.common.FileRename;
 import com.MyWeb.user.dto.UserDto;
 import com.MyWeb.user.entity.CustomUserDetails;
 import com.MyWeb.user.entity.User;
 import com.MyWeb.user.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 @Controller
 public class UserController {
 
-    private final UserService userService;
+    @Value("${file.user-profile}")
+    private String uploadDir;
 
-    public UserController(UserService userService) {
+    private final UserService userService;
+    private final FileRename fileRename;
+
+    public UserController(UserService userService, FileRename fileRename) {
         this.userService = userService;
+        this.fileRename = fileRename;
     }
 
 //    @PostMapping("/user/register")
@@ -56,7 +73,8 @@ public class UserController {
         user.setUserEmail(userDto.getUserEmail());
         user.setUserPwd(userDto.getUserPwd());
         user.setNickName(userDto.getNickName());
-        user.setAddress(userDto.getAddress()+userDto.getAddress2());
+        user.setAddress(userDto.getAddress());
+        user.setAddress2(userDto.getAddress2());
         int userSaveResult = userService.saveUser(user);
 
         System.out.println("인서트 컨트롤러 users => " + user);
@@ -89,6 +107,48 @@ public class UserController {
     }
 
     /**
+     * 마이페이지에서 유저 수정하기
+     */
+    @ResponseBody
+    @PostMapping(value="/user/modifiedUser", produces = "application/json;charset=utf-8")
+    public ResponseEntity<String> changeUser(
+            @RequestParam("id")Long id, @RequestParam("profilePhoto")MultipartFile file,
+            @RequestParam("nickName")String nickName, @RequestParam("address")String address,
+            @RequestParam("address2") String address2
+            )throws UnsupportedEncodingException {
+        try {
+            String fileName = null;
+            if(!(file.isEmpty())){
+                Path uploadPath = Paths.get(uploadDir);
+                if(!Files.exists(uploadPath)){
+                    Files.createDirectories(uploadPath);
+                }
+                fileName = file.getOriginalFilename();
+                fileName = fileRename.fileRename(uploadPath, fileName);
+
+                Path filePath = uploadPath.resolve(fileName);
+                Files.copy(file.getInputStream(),filePath);
+            }
+                User u = new User();
+                u.setId(id);
+                u.setProfilePhoto(fileName);
+                u.setNickName(nickName);
+                u.setAddress(address);
+                u.setAddress2(address2);
+                userService.modifierUser(u);
+
+            return ResponseEntity.ok("하잉");
+        }catch(Exception e){
+            return ResponseEntity.status(500).body("파일 업로드 실패");
+
+        }
+    }
+
+
+
+
+
+    /**
      * 로그인 이동 페이지
      */
     @GetMapping("/loginPage")
@@ -102,6 +162,13 @@ public class UserController {
     @GetMapping ("/newUser")
     public String newUser(){
         return "user/register";
+    }
+    /**
+     * 마이페이지 이동페이지
+     */
+    @GetMapping("/myPage")
+    public String myPage(){
+        return "user/myPage";
     }
 
 }
