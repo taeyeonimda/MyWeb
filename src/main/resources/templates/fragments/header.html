@@ -142,17 +142,6 @@
 
 
 
-    function kakaoLogout() {
-        axios.get('/kakaoLogout')
-            .then(function(response) {
-                location.reload();
-            })
-            .catch(function(error) {
-                console.error(error.responseText);
-            });
-    }
-
-
     function openModal() {
         $("#member-box").show();
         $(".modal-wrap").css("display", "flex");
@@ -196,6 +185,11 @@
             stompClient.subscribe('/topic/' + roomNo, function (message) {
                 receiveMsg(message);
             });
+            // 개인 메시지 구독
+            stompClient.subscribe('/user/queue/reply', function (message) {
+                receiveMsg(message);
+            });
+
             startChat();
         });
     }
@@ -214,17 +208,28 @@
             const msgData = JSON.parse(message.body);
             const isMyMessage = msgData.senderId === StringChatId;
 
-            console.log('receiveMsg 1번',msgData);
-            appendChat(msgData, isMyMessage);
-        } catch (e) {
-            console.log('receiveMsg 2번',message.body);
-            appendChat(message.body, false);
-        }
+            // 입장/퇴장 메시지를 현재 사용자에게는 표시하지 않도록 필터링
+            if (msgData.type === "enter" || msgData.type === "leave") {
+                if (!isMyMessage) {
+                    appendChat(msgData, isMyMessage);
+                }} else {
+                    appendChat(msgData, isMyMessage);
+                }
+            } catch (e) {
+                console.log('receiveMsg 2번', message.body);
+                appendChat(message.body, false);
+            }
+
     }
 
 
 
     function endChat() {
+
+        roomNo = $("#roomNo").val();
+        const data = { type: "leave", msg: chatId + "님이 퇴장하셨습니다", roomNo: roomNo, senderId: chatId };
+        stompClient.send("/app/chat", {}, JSON.stringify(data));
+
         if (stompClient !== null) {
             stompClient.disconnect();
         }
@@ -283,35 +288,55 @@
     }
 
     function appendChat(msgData, isMyMessage) {
+        let lastSenderId = null;
+        let lastProfilePhoto = null;
+
         let messageArea = $(".messageArea");
         let messageElement;
+        let profilePhotoHTML = '';
+
         console.log('AppendChat msg Data => ',msgData);
+
+        // 프로필 사진이 다를 때만 추가
+        if (msgData.profilePhoto !== lastProfilePhoto || lastSenderId !== msgData.senderId) {
+            profilePhotoHTML = `<img src="/uploads/user/${msgData.profilePhoto}" alt="User Profile Photo" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">`;
+        }
 
         if(typeof msgData === 'string'){
             console.log('AppendChat String인경우 => ',msgData);
             $(".messageArea").append(msgData);
         }else{
             console.log('AppendChat String이 아닌 경우 => ',msgData);
-            messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(msgData.msg);
+            // messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(msgData.msg);
+            messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(profilePhotoHTML + msgData.msg);
             messageArea.append(messageElement);
         }
+        // 스크롤을 항상 최신 메시지로 이동
+        messageArea.scrollTop(messageArea[0].scrollHeight);
 
-
-
-        messageArea.scrollTop = messageArea.scrollHeight;
-
-        <!--        let messageArea = $(".messageArea");-->
-
-        <!--        if (typeof msgData === 'string') {-->
-        <!--&lt;!&ndash;            messageElement = $("<div>").addClass('chat').html(msgData);&ndash;&gt;-->
-        <!--            $(".messageArea").append(msgData);-->
-        <!--        } else {-->
-        <!--            messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(msgData.msg);-->
-        <!--        }-->
-
-        <!--        messageArea.append(messageElement);-->
-        <!--        messageArea.scrollTop(messageArea[0].scrollHeight);-->
+        // 마지막 메시지의 발신자 ID와 프로필 사진 URL을 기억
+        lastSenderId = msgData.senderId;
+        lastProfilePhoto = msgData.profilePhoto;
     }
+
+    // function appendChat(msgData, isMyMessage) {
+    //
+    //
+    //     let messageArea = $(".messageArea");
+    //     let messageElement;
+    //     console.log('AppendChat msg Data => ',msgData);
+    //
+    //     if(typeof msgData === 'string'){
+    //         console.log('AppendChat String인경우 => ',msgData);
+    //         $(".messageArea").append(msgData);
+    //     }else{
+    //         console.log('AppendChat String이 아닌 경우 => ',msgData);
+    //         messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(msgData.msg);
+    //         messageArea.append(messageElement);
+    //     }
+    //     messageArea.scrollTop = messageArea.scrollHeight;
+    //
+    // }
 
     $("#sendMsg").on("keyup", function(key) {
         if (key.keyCode === 13) {

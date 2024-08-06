@@ -34,7 +34,22 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	/** oauth2 client*/
+	// JSON Simple 의존성
+//	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+	// Gson 의존성
+	implementation 'com.google.code.gson:gson:2.8.9'
+
+	implementation 'org.springframework:spring-websocket'
+	implementation 'org.springframework:spring-messaging'
+
+	// STOMP
+	implementation 'org.webjars:stomp-websocket:2.3.4'
+
+	// SockJS
+	implementation 'org.webjars:sockjs-client:1.5.1'
+
+
+	// oauth2 client
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'

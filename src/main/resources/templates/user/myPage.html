@@ -90,13 +90,7 @@
         <p th:text="${currentUser.nickName + '님.'} "></p>
 
         <div class="wrapDiv">
-            <div class="photoDiv" th:if="${currentUser.profilePhoto != null}">
-<!--                <img th:src="@{images/user/{profilePhoto}(profilePhoto=${currentUser.profilePhoto})}" alt="User Profile Photo">-->
-                <img th:src="@{'/uploads/user/' + ${currentUser.profilePhoto}}" alt="User Profile Photo">
-            </div>
-            <div class="photoDiv" th:if="${currentUser.profilePhoto == null}">
-                <h1>프로필 사진이 없습니다.</h1>
-            </div>
+
             <form class="myPage-Form">
                 <input type="hidden" readonly="readonly" class="form-control-plaintext"
                        id="userId" th:value="${currentUser.id}">
@@ -148,17 +142,11 @@
                                 style="display:none;" onclick="findAddress()">주소 찾기</button>
                     </div>
                 </div>
-<!--                th:onclick="toggleReadonly(false); "-->
-                <div class="btnDiv">
-<!--                    <button type="button" id="editBtn" class="btn beforeMod" >수정하기</button>-->
-<!--                    &lt;!&ndash;            <button type="button" class="btn btn-primary" th:onclick="toggleReadonly(true);">수정완료</button>&ndash;&gt;-->
-<!--                    <button type="button" id="cancelBtn" class="btn cancelBtn" th:onclick="toggleReadonly(true);"-->
-<!--                            >취소</button>-->
 
+                <div class="btnDiv">
                     <button type="button" id="editBtn" class="btn beforeMod" onclick="startEdit()">수정하기</button>
                     <button type="button" id="completeBtn" class="btn afterMod" style="display:none;" onclick="completeEdit()">수정 완료</button>
                     <button type="button" id="cancelBtn" class="btn cancelBtn" onclick="cancelEdit()">취소</button>
-
                 </div>
 
             </form>

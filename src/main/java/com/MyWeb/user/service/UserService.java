@@ -103,4 +103,9 @@ public class UserService implements UserDetailsService {
             }
         }
     }
+
+    public String findGetProfilePhoto(String chatMember) {
+        Long userId = Long.valueOf(chatMember);
+        return userRepository.findProfilePhotoById(userId);
+    }
 }

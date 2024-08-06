@@ -8,11 +8,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     @Value("${file.user-profile}")
-    private String uploadDir;
+    private String profileImg;
+
+    @Value("${file.chatImg}")
+    private String chatImage;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:"+uploadDir);
+                .addResourceLocations("file:" + profileImg, "file:" + chatImage);
     }
 }
