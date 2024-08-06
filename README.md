@@ -18,4 +18,4 @@
 ### 3. 세션관리 
 #### -> 입장, 퇴장시 해당 메시지는 보내지만 예를들어 1번방에 몇명이있는지 같은걸 체크하고싶다.
 
-![img.png](img.png)
+[![img.png](img.png)](https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093)
