@@ -82,7 +82,8 @@
 <div class="modal-wrap" style="display: none;">
     <div class="modal-chat bg-white">
         <div class="closeBtnDiv">
-            <span class="material-symbols-outlined fw-bold" onclick="closeModal();">close</span>
+<!--            <span class="material-symbols-outlined fw-bold" onclick="closeModal();">close</span>-->
+            <span class="material-symbols-outlined fw-bold closeBtn" onclick="closeModal();"></span>
         </div>
         <div id="member-box" class="bg-white mt-5 mb-5"
              th:if ="${currentUser != null}">
@@ -92,20 +93,39 @@
             <p class="text-secondary mt-3">아이콘 클릭 채팅방으로 이동합니다</p>
         </div>
 
+<!--        <div class="chatting" style="display: none;">-->
+<!--            <div id="chatArea" class="messageArea bg-white"></div>-->
+<!--            <div class="sendBox" id="sendBox">-->
+<!--                <div class="flex-space-between">-->
+<!--                    <input type="text" class="form-control bg-light border-0" width="80%;" id="sendMsg">-->
+<!--                    <input type="file" class="form-control border-0 text-secondary" name="chatFile" id="chatFile" multiple="multiple">-->
+<!--                    <button id="sendBtn" class="btn btn-outline-secondary" onclick="sendMsg();">전송</button>-->
+<!--                </div>-->
+<!--                <div id="fileMsgBox"></div>-->
+<!--            </div>-->
+<!--        </div>-->
+
         <div class="chatting" style="display: none;">
             <div id="chatArea" class="messageArea bg-white"></div>
             <div class="sendBox" id="sendBox">
                 <div class="flex-space-between">
-                    <input type="text" class="form-control bg-light border-0" width="80%;" id="sendMsg">
-                    <input type="file" class="form-control border-0 text-secondary" name="chatFile" id="chatFile" multiple="multiple">
+                    <button class="btn-icon" id="addFileBtn">
+                        <img id="inputImages" src="/images/plus_add_icon.png" alt="Add File" class="icon">
+                    </button>
+                    <button class="btn-icon" id="emojiBtn">
+                        <img src="/images/smile_icon.png" alt="Add Emoji" class="icon">
+                    </button>
+                    <input type="text" class="form-control bg-light border-0" id="sendMsg" placeholder="메시지를 입력하세요">
                     <button id="sendBtn" class="btn btn-outline-secondary" onclick="sendMsg();">전송</button>
                 </div>
-                <!--                <div class="flex-space-between" id="fileBox">-->
-                <!--                    <button type="button" class="btn btn-outline-secondary" onclick="fileSend();" id="sendFileBtn">보내기</button>-->
-                <!--                </div>-->
+                <input type="file" class="form-control border-0 text-secondary" name="chatFile" id="chatFile" multiple="multiple" style="display: none;">
                 <div id="fileMsgBox"></div>
             </div>
+            <div class="form-group row">
+                <div id="previewContainer"></div>
+            </div>
         </div>
+
 
     </div>
 </div>
@@ -113,11 +133,79 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
+    // Document.
     let stompClient;
     let chatId;
     let chatName;
     let roomNo;
     let ws;
+    document.getElementById('addFileBtn').addEventListener('click', function() {
+        document.getElementById('chatFile').click();
+    });
+
+    document.getElementById('sendMsg').addEventListener('keyup', function(e) {
+        if (e.keyCode === 13) {
+            sendMsg();
+        }
+    });
+
+    document.getElementById('chatFile').addEventListener('change', function(event) {
+        let files = Array.from(event.target.files);
+
+
+        const previewContainer = document.getElementById('previewContainer');
+        previewContainer.innerHTML = '';
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.maxWidth = '100px';
+                img.style.margin = '5px';
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    })
+
+        function chatWrapCheck(){
+        let chatWraps = document.querySelectorAll('.chatwrap');
+        // console.log('chatwraps ????? ',chatWraps);
+
+        for (let i = 1; i < chatWraps.length; i++) {
+            let currentWrap = chatWraps[i];
+            let previousWrap = chatWraps[i - 1];
+            // console.info('currentWrap : {} ',currentWrap);
+            // console.info('previousWrap : {} ',previousWrap);
+
+            // 현재 메시지와 이전 메시지가 같은 사용자인 경우
+            if (currentWrap.getAttribute('data-id') === previousWrap.getAttribute('data-id')) {
+                let previousTime = previousWrap.querySelector('.time');
+                if (previousTime) {
+                    previousTime.style.display = 'none';
+                }
+
+                let currentProfile = currentWrap.querySelector('.chatId');
+                if (currentProfile) {
+                    currentProfile.style.display = 'none';
+                }
+
+
+                // currentWrap.querySelector('.div-left .pClass').classList.add('no-arrow');
+                let leftDiv = currentWrap.querySelector('.div-left .pClass');
+                let rightDiv = currentWrap.querySelector('.div-right .pClass2');
+
+                // testDiv.querySelector('.pClass').classList.add('no-arrow');
+                if(leftDiv != null){
+                    leftDiv.classList.add('no-arrow');
+                }
+                rightDiv != null ? rightDiv.classList.add('no-arrow') : '';
+                // console.log('testDiv => ',testDiv);
+            }
+        }
+    }
+
 
     $("#fileMsgBox").hide();
 
@@ -135,7 +223,6 @@
             }).catch(function(error) {
                 console.error('Error:', error);
             });
-
 
         }
     });
@@ -210,18 +297,61 @@
 
             // 입장/퇴장 메시지를 현재 사용자에게는 표시하지 않도록 필터링
             if (msgData.type === "enter" || msgData.type === "leave") {
+                // console.log('receiveMsg 1번', message.body);
                 if (!isMyMessage) {
                     appendChat(msgData, isMyMessage);
-                }} else {
-                    appendChat(msgData, isMyMessage);
+                }
+            } else {
+                // console.log('receiveMsg 2번', message.body);
+                appendChat(msgData, isMyMessage);
                 }
             } catch (e) {
-                console.log('receiveMsg 2번', message.body);
+                // console.log('receiveMsg 3번', message.body);
                 appendChat(message.body, false);
             }
 
     }
 
+    // function appendChat(msgData, isMyMessage) {
+    //     let messageArea = $(".messageArea");
+    //     let messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left');
+    //
+    //     console.log('appendChat msgDate => ',msgData);
+    //     console.log('appendChat msgDate => ',isMyMessage);
+    //
+    //     if(isMyMessage){
+    //         messageElement.append($("<span>").addClass("chatId").text(msgData.senderId));
+    //     }
+    //
+    //     // 프로필 사진과 닉네임을 추가합니다.
+    //     if (!isMyMessage) {
+    //         if (msgData.profilePhoto) {
+    //             messageElement.append($("<img>").attr("src", msgData.profilePhoto).addClass("profile-photo"));
+    //         }
+    //         messageElement.append($("<span>").addClass("chatId").text(msgData.senderId));
+    //     }
+    //     // src="/uploads/user/${msgData.profilePhoto}"
+    //     // 채팅 메시지를 추가합니다.
+    //     // messageElement.append($("<div>").addClass('message').addClass(isMyMessage ? 'right' : 'left').text(msgData.msg));
+    //
+    //     // 파일이 있는 경우 파일을 추가합니다.
+    //     if (msgData.files) {
+    //         msgData.files.forEach(file => {
+    //             if (file.type.startsWith("image/")) {
+    //                 messageElement.append($("<img>").attr("src", file.path));
+    //             } else {
+    //                 messageElement.append($("<a>").attr("href", file.path).text(file.name));
+    //             }
+    //         });
+    //     }
+    //
+    //     // 시간을 추가합니다.
+    //     // messageElement.append($("<div>").addClass('time').text(new Date(msgData.time).toLocaleTimeString()));
+    //
+    //     messageArea.append(messageElement);
+    //     messageArea.scrollTop = messageArea.scrollHeight;
+    // }
+    //
 
 
     function endChat() {
@@ -239,8 +369,13 @@
     }
 
     function sendMsg() {
-        const files = $("#chatFile")[0].files;
+        // const files = $("#chatFile")[0].files;
         const msg = $("#sendMsg").val();
+        const files = $("#chatFile")[0].files;
+
+        if(msg==='' && files.length===0){
+            alert('입력해주세요.');
+        }
 
         // 파일이 있는 경우
         if (files.length > 0) {
@@ -264,12 +399,11 @@
                 .then(function(response) {
                     console.log("Files sent successfully:", response);
                     // 파일 전송에 성공한 경우
-                    if (msg !== '') {
+                    console.log('되나???');
                         const data = { type: "file", msg: msg, roomNo: roomNo,
                             senderId: chatId , files: response.data};
                         stompClient.send("/app/chat", {}, JSON.stringify(data));
                         $("#sendMsg").val("");
-                    }
                 })
                 .catch(function(error) {
                     console.error('SendMsg Error:', error.message);
@@ -287,62 +421,112 @@
         $("#chatFile").val("");
     }
 
+
+
+
+
+
     function appendChat(msgData, isMyMessage) {
-        let lastSenderId = null;
-        let lastProfilePhoto = null;
+        let lastSenderId ;
+        let lastProfilePhoto ;
 
         let messageArea = $(".messageArea");
-        let messageElement;
+        let messageElement ='';
         let profilePhotoHTML = '';
 
-        console.log('AppendChat msg Data => ',msgData);
-
-        // 프로필 사진이 다를 때만 추가
-        if (msgData.profilePhoto !== lastProfilePhoto || lastSenderId !== msgData.senderId) {
-            profilePhotoHTML = `<img src="/uploads/user/${msgData.profilePhoto}" alt="User Profile Photo" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">`;
-        }
 
         if(typeof msgData === 'string'){
-            console.log('AppendChat String인경우 => ',msgData);
+            // console.log('AppendChat String인경우 => ',msgData);
             $(".messageArea").append(msgData);
-        }else{
-            console.log('AppendChat String이 아닌 경우 => ',msgData);
-            // messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(msgData.msg);
-            messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(profilePhotoHTML + msgData.msg);
+        }else {
+            // console.log('AppendChat String이 아닌 경우 => ', msgData);
+
+            //내가쓴거
+            if(isMyMessage){
+                // console.log('msgData.msg => ',msgData.msg);
+                // console.log('파일체크 ', msgData.filePaths);
+                if(!Array.isArray(msgData.filePaths)){
+                    messageElement =`
+                    <div class='chatwrap chatWrap-right' data-id='${msgData.senderId}'>
+                    <div class='div-right'><p class='pClass2'>${msgData.msg}</p>
+                    <span class='time time-right'>${msgData.time}</span>
+                    </div></div>`;
+                }else{
+                    if (msgData.filePaths && Array.isArray(msgData.filePaths)) {
+                        if(msgData.msg != ''){
+                            messageElement =`
+                            <div class='chatwrap chatWrap-right' data-id='${msgData.senderId}'>
+                            <div class='div-right'><p class='pClass2'>${msgData.msg}</p>
+                            <span class='time time-right'>${msgData.time}</span>
+                            </div></div>`;
+                        }
+                        msgData.filePaths.forEach(filePath =>{
+                            messageElement +=`
+                            <div class='chatwrap chatWrap-right' data-id='${msgData.senderId}'>
+                            <div class='div-right'>
+                                <div class='pClass2'>
+                                    <img src='/uploads/chat/${filePath}' >
+                                </div>
+                                <span class='time time-right'>${msgData.time}</span>
+                            </div></div>`;
+                        });
+
+                    }
+
+                }
+
+            }else{
+                if(!Array.isArray(msgData.filePaths)){
+                    messageElement =`
+                    <div class='chatwrap chatWrap-left' data-id='${msgData.senderId}'>
+                    <div class='chat left leftBox'>
+                        <span class='chatId' style='display: flex;'>
+                        <img src='/uploads/user/${msgData.profilePhoto}'alt='Profile Photo' style='width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;'>
+                        ${msgData.senderId}</span>
+                    <div class='div-left' style='padding-left: 40px;'><p class='pClass'>${msgData.msg}</p>
+                    <span class='time time-left'>${msgData.time}</span>
+                    </div></div></div>`;
+                }else{
+                    if (msgData.filePaths && Array.isArray(msgData.filePaths)) {
+                        if(msgData.msg != ''){
+                            messageElement =`
+                        <div class='chatwrap chatWrap-left' data-id='${msgData.senderId}'>
+                        <div class='chat left leftBox'>
+                            <span class='chatId' style='display: flex;'>
+                            <img src='/uploads/user/${msgData.profilePhoto}'alt='Profile Photo' style='width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;'>
+                            ${msgData.senderId}</span>
+                        <div class='div-left' style='padding-left: 40px;'><p class='pClass'>${msgData.msg}</p>
+                        <span class='time time-left'>${msgData.time}</span>
+                        </div></div></div>`;
+                        }
+                        msgData.filePaths.forEach(filePath => {
+                            messageElement +=`
+                            <div class='chatwrap chatWrap-left' data-id='${msgData.senderId}'>
+                                <div class='chat left leftBox'><span class='chatId' style='display: flex;'></span></div>
+                                <div class='div-left' style='padding-left: 40px;'>
+                                        <div class='pClass'>
+                                            <img src='/uploads/chat/${filePath}'  alt="사진">
+                                        </div>
+                                        <span class='time time-left'>${msgData.time}</span>
+                                </div>
+                            </div>`;
+                        })
+                    }
+                }
+            }
             messageArea.append(messageElement);
         }
         // 스크롤을 항상 최신 메시지로 이동
         messageArea.scrollTop(messageArea[0].scrollHeight);
-
+        chatWrapCheck();
         // 마지막 메시지의 발신자 ID와 프로필 사진 URL을 기억
-        lastSenderId = msgData.senderId;
-        lastProfilePhoto = msgData.profilePhoto;
+        // lastSenderId = msgData.senderId;
+        // lastProfilePhoto = msgData.profilePhoto;
     }
 
-    // function appendChat(msgData, isMyMessage) {
-    //
-    //
-    //     let messageArea = $(".messageArea");
-    //     let messageElement;
-    //     console.log('AppendChat msg Data => ',msgData);
-    //
-    //     if(typeof msgData === 'string'){
-    //         console.log('AppendChat String인경우 => ',msgData);
-    //         $(".messageArea").append(msgData);
-    //     }else{
-    //         console.log('AppendChat String이 아닌 경우 => ',msgData);
-    //         messageElement = $("<div>").addClass('chat').addClass(isMyMessage ? 'right' : 'left').html(msgData.msg);
-    //         messageArea.append(messageElement);
-    //     }
-    //     messageArea.scrollTop = messageArea.scrollHeight;
-    //
-    // }
 
-    $("#sendMsg").on("keyup", function(key) {
-        if (key.keyCode === 13) {
-            sendMsg();
-        }
-    });
+
 
 </script>
+
 

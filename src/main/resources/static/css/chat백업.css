@@ -1,0 +1,326 @@
+/*!* 고정하는 class *!*/
+/*.flex-space-between{*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*}*/
+/*.flex-space-around{*/
+/*	display: flex;*/
+/*	justify-content: space-around;*/
+/*}*/
+/**{*/
+/*	font-family: sans-serif;*/
+/*}*/
+
+
+
+
+
+
+/*!*채팅모달*!*/
+/*.modal-wrap{*/
+/*    width: 100vw;*/
+/*    height: 100vh;*/
+/*    background-color: rgba(0, 0, 0, 0.21);*/
+/*    position: fixed;*/
+/*    display: none;*/
+/*    top: 0;*/
+/*    left: 0;*/
+/*    justify-content: center;*/
+/*    z-index: 10;*/
+/*    align-items: center;*/
+/*}*/
+/*.modal-chat{*/
+/*    background-color: #fff;*/
+/*    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, rgba(0, 0, 0, 0.07) 0px 2px 4px, rgba(0, 0, 0, 0.07) 0px 4px 8px, rgba(0, 0, 0, 0.07) 0px 8px 16px, rgba(0, 0, 0, 0.07) 0px 16px 32px, rgba(0, 0, 0, 0.07) 0px 32px 64px;*/
+/*    width: 500px;*/
+/*    height: 550px;*/
+/*    align-items: center;*/
+/*    text-align: center;*/
+/*    border-radius: 25px;*/
+/*}*/
+/*#member-box{*/
+/*    margin: 0 auto;*/
+/*    width: 250px;*/
+/*    overflow: hidden;*/
+/*}*/
+
+
+/*.messageArea::-webkit-scrollbar {*/
+/*    width: 8px;  !* 스크롤바의 너비 *!*/
+/*}*/
+
+/*.messageArea::-webkit-scrollbar-thumb {*/
+/*    height: 10%; !* 스크롤바의 길이 *!*/
+/*    background: #0F4229; !* 스크롤바의 색상 *!*/
+/*    border-radius: 10px;*/
+/*}*/
+
+/*.messageArea::-webkit-scrollbar-track {*/
+/*    background: #E8F5E9;  !*스크롤바 뒷 배경 색상*!*/
+/*}*/
+
+/*!* 채팅창 CSS *!*/
+/*!*.chat {*!*/
+/*!*	margin: 10px 0;*!*/
+/*!*	display: flex;*!*/
+/*!*	align-items: flex-end;*!*/
+/*!*}*!*/
+/*!*.chat.left {*!*/
+/*!*	justify-content: flex-start;*!*/
+/*!*}*!*/
+/*!*.chat.right {*!*/
+/*!*	justify-content: flex-end;*!*/
+/*!*}*!*/
+/*!*.profile-photo {*!*/
+/*!*	width: 30px;*!*/
+/*!*	height: 30px;*!*/
+/*!*	border-radius: 50%;*!*/
+/*!*	margin-right: 10px;*!*/
+/*!*}*!*/
+/*!*.message {*!*/
+/*!*	max-width: 60%;*!*/
+/*!*	padding: 10px;*!*/
+/*!*	border-radius: 10px;*!*/
+/*!*	background: #f1f1f1;*!*/
+/*!*}*!*/
+/*!*.message.right {*!*/
+/*!*	background: #dcf8c6;*!*/
+/*!*}*!*/
+/*!*.time {*!*/
+/*!*	font-size: 0.8em;*!*/
+/*!*	color: #888;*!*/
+/*!*}*!*/
+
+
+/*!* 채팅창 css *!*/
+/*.chatting{*/
+/*	width: 460px;*/
+/*	display: none;*/
+/*	margin: 0 auto;*/
+/*}*/
+/*.messageArea{*/
+/*	overflow-y: auto;*/
+/*	border: 1px solid black;*/
+/*	height: 410px;*/
+/*	display:flex;*/
+/*	flex-direction: column;*/
+/*	padding: 10px;*/
+/*}*/
+/*.messageArea>p{*/
+/*	text-align: center;*/
+/*	width: 100%;*/
+/*}*/
+/*.sendBox>*{*/
+/*	padding-bottom: 20px;*/
+/*}*/
+/*#sendMsg{*/
+/*	width: 75%;*/
+/*}*/
+/*#sendBtn{*/
+/*	width: 20%;*/
+/*}*/
+/*#fileBox>input{*/
+/*	width: 75%;*/
+/*}*/
+/*#fileBox>button{*/
+/*	width: 20%;*/
+/*}*/
+/*.chatwrap{*/
+/*	display:flex;*/
+/*}*/
+
+/*.chat {*/
+/*	margin-bottom: 10px;*/
+/*	padding: 8px;*/
+/*	border-radius: 3px;*/
+/*	display: flex;*/
+/*	flex-direction: column;*/
+/*}*/
+
+/*.left {*/
+/*	position: relative;*/
+/*	max-width: 300px;*/
+/*	align-self: flex-start;*/
+/*	background-color: #E8F5E9;*/
+/*	border-radius: 10px;*/
+/*	margin-left: 16px;*/
+/*	padding: 15px;*/
+/*}*/
+
+/*.left:after {*/
+/*	content: '';*/
+/*	position: absolute;*/
+/*	border-style: solid;*/
+/*	border-width: 15px 15px 15px 0;*/
+/*	border-color: transparent #E8F5E9;*/
+/*	display: block;*/
+/*	width: 0;*/
+/*	z-index: 1;*/
+/*	left: -15px;*/
+/*	top: 12px;*/
+/*}*/
+
+/*.right {*/
+/*	position: relative;*/
+/*	max-width: 300px;*/
+/*	align-self: flex-end;*/
+/*	background-color: #20c997;*/
+/*	border-radius: 10px;*/
+/*	margin-right: 16px;*/
+/*	padding: 15px;*/
+/*}*/
+
+/*.right:after {*/
+/*	content: '';*/
+/*	position: absolute;*/
+/*	border-style: solid;*/
+/*	border-width: 15px 0 15px 15px;*/
+/*	border-color: transparent #20c997;*/
+/*	display: block;*/
+/*	width: 0;*/
+/*	z-index: 1;*/
+/*	right: -15px;*/
+/*	top: 12px;*/
+/*}*/
+
+/*.time {*/
+/*	font-size: 0.8em;*/
+/*	color: #888;*/
+/*}*/
+
+/*.time.left {*/
+/*	align-self: flex-end;*/
+/*	margin-right: 16px;*/
+/*	margin-top: 5px;*/
+/*}*/
+
+/*.time.right {*/
+/*	align-self: flex-start;*/
+/*	margin-left: 16px;*/
+/*	margin-top: 5px;*/
+/*}*/
+
+/*input[name='chatFile']{*/
+/*	width: 50%;*/
+/*}*/
+
+
+
+
+
+/*!*!* 댓글 달기 *!*!*/
+/*!*.inputCommentBox{*!*/
+/*!*	height: 100px;*!*/
+/*!*	margin-bottom: 30px;*!*/
+/*!*	margin-left: 10px;*!*/
+/*!*}*!*/
+/*!*.inputCommentBox>form>button{*!*/
+/*!*	margin-bottom: 80px;*!*/
+/*!*	margin-left: 20px;*!*/
+/*!*}*!*/
+/*!*textarea[name=clubComContent]{*!*/
+/*!*	resize: none;*!*/
+/*!*	height: 90px;*!*/
+/*!*	line-height: 25px;*!*/
+/*!*	padding-left: 10px;*!*/
+/*!*	margin: 0;*!*/
+/*!*}*!*/
+/*!*textarea:focus{*!*/
+/*!*	outline: none;*!*/
+/*!*}*!*/
+/*!*.comment-btn{*!*/
+/*!*	margin: 0;*!*/
+/*!*	width: 14%;*!*/
+/*!*	height: 90px;	*!*/
+/*!*}*!*/
+
+/*!*!* 댓글출력 *!*!*/
+/*!*!* 코멘트 전체 박스 *!*!*/
+/*!*.commentBox{*!*/
+/*!*	border: 1px solid #bbb;*!*/
+/*!*}*!*/
+/*!*.commentBox>ul{*!*/
+/*!*	padding-top: 15px;*!*/
+/*!*	list-style-type: none;*!*/
+/*!*	margin: 0;*!*/
+/*!*	padding: 10px;*!*/
+/*!*	display : flex;*!*/
+/*!*}*!*/
+
+/*!*!* 댓글 출력 *!*!*/
+/*!*.comment-profil-li{*!*/
+/*!*	width: 10%;*!*/
+/*!*	min-height: 100px;*!*/
+/*!*}*!*/
+/*!*.comment-content-li{*!*/
+/*!*	width: 90%*!*/
+/*!*}*!*/
+/*!*.comment-link{*!*/
+/*!*	text-align: right;*!*/
+/*!*}*!*/
+/*!*.comment-link>a{*!*/
+/*!*	margin-left: 10px;*!*/
+/*!*}*!*/
+
+
+/*!*!*대댓글달기*!*!*/
+/*!*.inputRecommentBox{*!*/
+/*!*	margin-top: 20px;*!*/
+/*!*	display: none;*!*/
+/*!*}*!*/
+/*!*.inputRecommentBox>form>ul{*!*/
+/*!*	list-style-type:none;*!*/
+/*!*	display : flex;*!*/
+/*!*	justify-content: space-between;*!*/
+/*!*	margin: 0;*!*/
+/*!*	padding: 10px;*!*/
+/*!*}*!*/
+/*!*.inputRecommentBox>form>ul>li{*!*/
+/*!*	height: 90px;*!*/
+/*!*}*!*/
+/*!*.arrow-box{*!*/
+/*!*	width: 5%;*!*/
+/*!*	display: flex;*!*/
+/*!*	justify-content: center;*!*/
+/*!*	align-items: center;*!*/
+/*!*	padding-bottom: 60px;*!*/
+/*!*}*!*/
+/*!*.text-box{*!*/
+/*!*	width: 75%;*!*/
+/*!*}*!*/
+/*!*.arrow-span{*!*/
+/*!*	color : #ccc;*!*/
+/*!*}*!*/
+/*!*.btn-box{*!*/
+/*!*	width:15%;*!*/
+/*!*	height: 100%;*!*/
+/*!*}*!*/
+/*!*.btn-box>button{*!*/
+/*!*	width: 90%;*!*/
+/*!*	height: 100%;*!*/
+/*!*}*!*/
+
+
+/*!*!*대댓글 출력*!*!*/
+/*!*.recomment-profil-li{*!*/
+/*!*	width: 15%*!*/
+/*!*}*!*/
+/*!*.recomment-content-li{*!*/
+/*!*	width:75%*!*/
+/*!*}*!*/
+/*!*.comment-textarea{*!*/
+/*!*	resize: none;*!*/
+/*!*	height: 60px;*!*/
+/*!*	line-height: 30px;*!*/
+/*!*	width: 500px;*!*/
+/*!*}*!*/
+
+
+/*!*.closeBtnDiv{*!*/
+/*!*	text-align: right;*!*/
+/*!*	width: 98%;*!*/
+/*!*	padding-top: 5px;*!*/
+/*!*}*!*/
+/*!*.closeBtnDiv span:hover {*!*/
+/*!*	cursor: pointer;*!*/
+/*!*}*!*/

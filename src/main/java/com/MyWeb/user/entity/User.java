@@ -56,7 +56,13 @@ public class User {
     @PrePersist
     public void userRole(){
         this.userRole = this.userRole == null ? "ROLE_USER" : this.userRole;
+        this.profilePhoto = this.profilePhoto == null ? "user_icon.png" : this.profilePhoto;
+
     }
+
+//    @PrePersist
+//    public void profilePhoto(){
+//    }
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 //    private List<Board> boards = new ArrayList<>();
 }
