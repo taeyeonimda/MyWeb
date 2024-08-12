@@ -6,13 +6,13 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 @Entity
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@AllArgsConstructor @NoArgsConstructor
 public class BoardComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,10 +37,12 @@ public class BoardComment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_no", referencedColumnName = "board_no")
+    @ToString.Exclude
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_no", referencedColumnName = "id")
+    @ToString.Exclude
     private User user;
 
     @PrePersist

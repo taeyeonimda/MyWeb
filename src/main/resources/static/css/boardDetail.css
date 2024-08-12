@@ -1,0 +1,65 @@
+.card {
+    border-radius: 5px solid black;
+}
+
+.card-header .card-body {
+    border: 1px solid black;
+    border-collapse: separate;
+}
+
+.card-title {
+    border-bottom: 1px dotted #787878;
+}
+
+.card-title span:first-child {
+    margin-right: 1rem;
+}
+
+.card-title span:nth-child(2) {
+    margin-right: 1rem;
+}
+
+.card-content {
+    min-height: 350px;
+}
+
+textarea {
+    white-space: normal;
+}
+
+.de1Recomment {
+    display: none;
+}
+
+.de2Recomment {
+    display: none;
+}
+.commentDiv{
+    margin-bottom:3px;
+}
+.contentDiv{
+    min-height:100px;
+    padding:8px;
+}
+.modified{
+    margin-left : 2px;
+}
+.text-body-secondary{
+    display:inline-block;
+}
+.btnWrapper{
+    margin-left:8px;
+}
+.pBtn{
+    cursor : pointer;
+}
+.deleteP{
+    margin-left:5px;
+}
+.btn-reply{
+    margin-left:5px;
+}
+
+.btn-reply2{
+    margin-left:5px;
+}
