@@ -1,4 +1,164 @@
-let currentUserId = '[[${currentUser.id}]]';
+$(document).ready(() => {
+    console.log('READY currentUserId => ', currentUserId);
+
+
+});
+
+//수정버튼 눌렀을때
+$(document).on('click','.modified',function(event){
+    let commentId = event.target.dataset.id;
+    modifyComment(commentId);
+})
+
+async function modifyComment(commentId) {
+    console.log('수정 =>', commentId);
+
+    // 수정 버튼을 확인 버튼으로 변경
+    let modifiedButton = $(`[data-id="${commentId}"].modified`);
+    modifiedButton.text('확인');
+    modifiedButton.removeClass('modified').addClass('confirm');
+
+    // 취소 버튼을 표시
+    let canceledButton = $(`[data-id="${commentId}"].canceled`);
+    canceledButton.css('display', 'inline-block'); // CSS에서 display: none;을 제거
+
+    let deleteButton = $(`[data-id="${commentId}"].deleteP`);
+    deleteButton.css('display','none');
+
+    // textarea의 readonly 속성을 false로 변경
+    let textarea = $(`[data-id="${commentId}"].textarea-Class`);
+    textarea.prop('readonly', false);
+    textarea.addClass('modifyArea');
+    textarea.focus();
+
+    let originalContent = textarea.val();
+    textarea.data('originalContent', originalContent); // 기존 값을 data 속성에 저장
+}
+
+// 수정에서 확인 눌렀을 경우
+$(document).on('click', '.confirm', function(event) {
+    let commentId = event.target.dataset.id;
+    confirmModification(commentId);
+});
+
+async function confirmModification(commentId) {
+    let textarea = $(`[data-id="${commentId}"].textarea-Class`);
+    let newContent = textarea.val();
+
+    console.log('확인 =>', commentId, '새로운 내용:', newContent);
+
+    // 서버로 수정된 내용을 전송하는 AJAX 요청
+    try {
+        let data = {
+            commentId : commentId,
+            content : newContent
+        };
+        await axios.post(`/comment/${commentId}/update`,
+            JSON.stringify(data),{
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(data=>{
+                console.log('data => ',data);
+                console.log('data.data => ',data.data);
+                textarea.prop('readonly', true);
+                textarea.removeClass('modifyArea');
+
+                let confirmButton = $(`[data-id="${commentId}"].confirm`);
+                confirmButton.text('수정');
+                confirmButton.removeClass('confirm').addClass('modified');
+
+                let canceledButton = $(`[data-id="${commentId}"].canceled`);
+                canceledButton.css('display', 'none');
+
+                let deleteButton = $(`[data-id="${commentId}"].deleteP`);
+                deleteButton.css('display', 'inline-block');
+
+                alert1("댓글이 수정 되었습니다.");
+
+                // 3초(3000ms) 후 페이지를 리로드
+                setTimeout(function() {
+                    location.reload();
+                }, 3000);
+            })
+            .catch(error=>{
+                console.error('수정 실패:', error);
+                alert('수정 중 문제가 발생했습니다.');
+            })
+    } catch (error) {
+        console.error('수정 실패:', error);
+        alert('수정 중 문제가 발생했습니다.');
+    }
+}
+
+
+//취소버튼 눌렀을때
+$(document).on('click', '.canceled', function(event) {
+    let commentId = event.target.dataset.id;
+    cancelModification(commentId);
+});
+
+
+function cancelModification(commentId) {
+    console.log('취소 =>', commentId);
+
+    // 확인 버튼을 다시 수정 버튼으로 변경
+    let confirmButton = $(`[data-id="${commentId}"].confirm`);
+    confirmButton.text('수정');
+    confirmButton.removeClass('confirm').addClass('modified');
+
+    // 취소 버튼을 숨김
+    let canceledButton = $(`[data-id="${commentId}"].canceled`);
+    canceledButton.css('display', 'none');
+
+    let deleteButton = $(`[data-id="${commentId}"].deleteP`);
+    deleteButton.css('display','inline-block');
+
+
+    // textarea의 readonly 속성을 다시 true로 변경
+    let textarea = $(`[data-id="${commentId}"].textarea-Class`);
+    textarea.prop('readonly', true);
+    textarea.removeClass('modifyArea');
+
+    // textarea의 내용을 원래 내용으로 복원
+    let originalContent = textarea.data('originalContent');
+    textarea.val(originalContent);
+}
+
+
+//삭제버튼 눌렀을때
+$(document).on('click','.deleteP',function(event){
+    let commentId = event.target.dataset.id;
+    deleteComment(commentId);
+
+})
+async function deleteComment(commentId){
+    console.info('여기는 delete Comment => ',commentId);
+    try{
+        await axios.get(`/comment/${commentId}/deleteComment`)
+            .then(data=>{
+                if(data.data ==='as'){
+                    alert1('이미 삭제된 댓글입니다.');
+                }else if(data.data ==='s' || data.data === 'ss'){
+                    alert1('댓글이 삭제되었습니다');
+
+                    setTimeout(function() {
+                        location.reload();
+                    }, 3000);
+                }else{
+                    alert1('댓글이 삭제되지않았습니다');
+                }
+            })
+            .catch(error=>{
+                console.log('error => ',error)
+            })
+    }catch(e){
+        console.warn('error => ',e);
+    }
+}
+
+
 
 //맨처음 댓글 입력창에서 작성눌렀을때
 $(document).on('submit', '#CommentForm', function(event) {
@@ -57,8 +217,8 @@ async function commentSubmit(event){
                                         <div class="btnWrapper">`;
                             // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
                             if (stringUserNo === userNo) {
-                                html += `<p class="text-body-secondary modified pBtn gray6">수정</p>
-                                    <p class="text-body-secondary deleteP pBtn gray6">삭제</p>`;
+                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                                    <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
                             }
                             // 댓글달기 버튼
                             html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply">댓글달기</p>
@@ -88,8 +248,8 @@ async function commentSubmit(event){
                                         <div class="btnWrapper">`;
 
                             if (stringUserNo === userNo) {
-                                html += `<p class="text-body-secondary modified pBtn gray6">수정</p>
-                                            <p class="text-body-secondary deleteP pBtn gray6">삭제</p>`;
+                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}" >수정</p>
+                                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
                             }
 
                             // 댓글달기 버튼 및 de2Recomment 폼 추가
@@ -231,8 +391,8 @@ async function reCommentSub(event){
 
                             // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
                             if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6">삭제</p>`;
+                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
                             }
 
                             // 댓글달기 버튼
@@ -261,8 +421,8 @@ async function reCommentSub(event){
                         <div class="btnWrapper">`;
 
                             if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6">삭제</p>`;
+                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
                             }
 
                             // 댓글달기 버튼 및 de2Recomment 폼 추가
@@ -327,7 +487,7 @@ $(document).on('click', '.re-reply-save2', function(event) {
 
 async function reCommentSub2(event){
     event.preventDefault();
-    const idx = $(".re-reply-save").index(event.target);
+    const idx = $(".re-reply-save2").index(event.target);
     console.log('인덱스확인~~', idx);
 
     const userNo = $(".comMemberNo2").eq(idx).val();
@@ -397,8 +557,8 @@ async function reCommentSub2(event){
 
                             // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
                             if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6">삭제</p>`;
+                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
                             }
 
                             // 댓글달기 버튼
@@ -427,8 +587,8 @@ async function reCommentSub2(event){
                         <div class="btnWrapper">`;
 
                             if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6">삭제</p>`;
+                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
                             }
 
                             // 댓글달기 버튼 및 de2Recomment 폼 추가

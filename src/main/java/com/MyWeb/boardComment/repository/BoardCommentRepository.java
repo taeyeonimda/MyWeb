@@ -41,4 +41,13 @@ public interface BoardCommentRepository extends JpaRepository<BoardComment,Long>
             " SET c.comChild = c.comChild + 1" +
             " WHERE c.id = :boardComId " +
             " AND c.board.id = :boardId ")
-    void updateComChild(@Param("boardComId")Long boardCommentId, @Param("boardId")Long boardId);}
+    void updateComChild(@Param("boardComId")Long boardCommentId, @Param("boardId")Long boardId);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE BoardComment c" +
+            " SET c.comContent =:comContent ,  " +
+            " c.comDelete = true " +
+            " WHERE c.id = :commentId ")
+    int changeContent(@Param("comContent") String content, @Param("commentId")Long commentId);
+}

@@ -63,3 +63,13 @@ textarea {
 .btn-reply2{
     margin-left:5px;
 }
+
+.canceled{
+    display: none;
+}
+.textarea-Class{
+    background-color:#f8f9fa;
+}
+.modifyArea{
+    background-color: #ffffff !important;
+}

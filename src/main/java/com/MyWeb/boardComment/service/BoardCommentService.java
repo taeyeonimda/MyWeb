@@ -33,4 +33,19 @@ public class BoardCommentService {
         return boardCommentRepository.findMaxStep(ref,boardCommentNo);
 
     }
+
+    public Optional<BoardComment> findById(Long commentId) {
+        return boardCommentRepository.findById(commentId);
+    }
+
+    @Transactional
+    public void deleteBoardComment(BoardComment boardComment) {
+        boardCommentRepository.delete(boardComment);
+    }
+
+    @Transactional
+    public int changeContent(String content, Long commentId) {
+        return boardCommentRepository.changeContent(content,commentId);
+    }
+
 }

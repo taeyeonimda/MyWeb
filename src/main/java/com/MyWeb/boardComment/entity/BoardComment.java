@@ -34,6 +34,8 @@ public class BoardComment {
     private int depth;    // 화면에서 margin용으로 필요한것
     @Column(name ="com_child")
     private int comChild; // 대댓글을 가지고있는 숫자
+    @Column(name = "com_delete", columnDefinition = "TINYINT(1) DEFAULT 0")
+    private boolean comDelete;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_no", referencedColumnName = "board_no")

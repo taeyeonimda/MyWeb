@@ -36,13 +36,22 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 ### 1. 게시판 목록 불러오기
 ### 2. 페이징
 ### 3. 댓글 , 좋아요 수 같이 불러오기
+### 4. 댓글 수정
+### 5. 댓글 삭제
+#### -> 댓글에 대댓글이 있는 경우 삭제하지못하고 [삭제된 내용입니다] 라는 내용이 보이도록 , 대댓글이 없는 경우 삭제, 이미 [삭제된 내용입니다] 라고 변경된 경우 comDelete라는 새로운 필드를 만들어 체크 후 알람이 가게 구현
+
 ***
 ## * 미완성 & 수정 해야할 목록
 
 ### 1. 디자인 & 검색기능
 #### -> 디자인
 
+### 2. 1차 댓글만 수정 구현 대댓글등은 수정해야함
 ***
 
 <img src="./src/main/resources/gitImage/board1.jpg">
 <img src="./src/main/resources/gitImage/board2.jpg">
+<img src="./src/main/resources/gitImage/commentModi1.jpg">
+<img src="./src/main/resources/gitImage/commentModi2.jpg">
+<img src="./src/main/resources/gitImage/commentModi3.jpg">
+<img src="./src/main/resources/gitImage/commentDel.jpg">
