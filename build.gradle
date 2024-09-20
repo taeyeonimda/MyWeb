@@ -48,6 +48,9 @@ dependencies {
 	// SockJS
 	implementation 'org.webjars:sockjs-client:1.5.1'
 
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 
 	// oauth2 client
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'

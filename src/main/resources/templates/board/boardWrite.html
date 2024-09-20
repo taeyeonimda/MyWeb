@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판 글쓰기 </title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{/fragments/header.html}"></div>
+    <div class='container-fluid'>
+<!--     enctype="multipart/form-data"    action="/boardWrite" -->
+        <form  id="boardWriteForm" method="post">
+            <table class="table" border="1">
+                <tr>
+                    <th><label for ="contentHead">제목</label></th>
+                    <td colspan="3">
+                        <input id="memberNo" name="memberNo" type="hidden" th:value="${currentUser.id }">
+                        <input id="contentHead" name="boardTitle" type="text" class="form-control">
+                    </td>
+                </tr>
+                <tr>
+                    <th>첨부파일</th>
+                    <td>
+                        <input type="file" name="boardFile" multiple>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="background-color:#0F4229; color:white;">내용</th>
+                    <td><textarea name="boardContent" id="boardContent"></textarea></td>
+                </tr>
+            </table>
+            <div class="boardWriteBtnBox">
+                <input type="submit" id="boardWriteBtn" class="boardWriteBtn btn btn-outline-secondary" value="작성">
+            </div>
+        </form>
+    </div>
+</body>
+<script>
+    $("#boardContent").summernote({
+        height:400,
+        lang:"ko-KR",
+        callbacks : {
+            onImageUpload : function(files, editor, welEditable){
+                console.log("files =>",files);
+                for(let i =0; i<files.length; i++){
+                    uploadImage(files[i], this);
+                }
+            }
+        }
+    });
+
+    async function uploadImage(files, editor) {
+        try {
+            const file = files;
+            const form = new FormData();
+            form.append("file", file);
+            const response = await axios.post('/board/uploadImages', form,
+                {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+            console.log('response =>', response);
+            const data = 'uploads/board/' + response.data;
+            console.log('data =>', data);
+            $(editor).summernote("insertImage", data);
+        } catch (error) {
+            console.log('error =>', error.message);
+        }
+    }
+
+    function uploadImage(files,editor){
+            const file = files;
+            const form = new FormData();
+            form.append("file", file);
+            axios.post('/board/uploadImages',form,{
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            })
+            .then (response =>{
+                console.log('response => ',response);
+                const data = 'uploads/temp/board/'+response.data;
+                console.log('data => ',data);
+                $(editor).summernote("insertImage",data);
+            })
+            .catch( error =>{
+                console.log('error => ',error.message);
+            })
+    }
+
+    $('#boardWriteBtn').on('click', function(e) {
+        e.preventDefault();
+
+        const boardTitle = $("#contentHead").val();
+        const boardContent = $("#boardContent").val();
+        const writer = $("#memberNo").val();
+
+        if(boardTitle === "") {
+            alert('제목을 입력해주세요');
+            return false;
+        }
+        if(boardContent === "") {
+            alert('내용을 입력해주세요');
+            return false;
+        }
+        if(writer === null || writer === "") {
+            alert('로그인을 해주세요');
+            return false;
+        }
+
+        console.log('BoardContent => ', boardContent);
+
+        // FormData 객체를 생성하여 폼 데이터를 추가
+        const formData = new FormData(document.getElementById('boardWriteForm'));
+
+        axios.post('/boardWrite', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        .then(function(response) {
+            console.log('data => ', response.data);
+            // 성공 시, 원하는 페이지로 이동하거나 성공 메시지 표시
+            window.location.href = '/board'; // 게시판 목록 페이지로 이동 예시
+        })
+        .catch(function(error) {
+            console.log('error => ', error);
+        });
+    });
+
+
+
+<!--    $("#boardWriteBtn").on("click",function(e){-->
+<!--        e.preventDefault();-->
+<!--        alert('하이용');-->
+<!--        const boardTitle = $("#contentHead");-->
+<!--        const boardContent = $("#boardContent");-->
+<!--        const boardWriteForm = $("#boardWriteForm");-->
+<!--        const writer = $("#memberNo");-->
+
+<!--        if(boardTitle.val()==""){-->
+<!--            alert('제목을 입력해주세요');-->
+<!--            return false;-->
+<!--        }-->
+<!--        if(boardContent.val()==""){-->
+<!--            alert('내용을 입력해주세요');-->
+<!--            return false;-->
+<!--        }-->
+<!--        if(writer.val()==null || writer.val()==""){-->
+<!--            alert('로그인을 해주세요');-->
+<!--            return false;-->
+<!--        }-->
+<!--        console.log('BoardContent => ', boardContent.val());-->
+
+<!--        const formData = new FormData(document.getElementById('boardWriteForm'));-->
+
+<!--          axios.post('/boardWrite', formData, {-->
+<!--            headers: {-->
+<!--                'Content-Type': 'multipart/form-data'-->
+<!--            }-->
+<!--        })-->
+<!--        .then(function(response) {-->
+<!--            console.log('data => ', response.data);-->
+<!--            // 성공 시, 원하는 페이지로 이동하거나 성공 메시지 표시-->
+<!--            window.location.href = '/board'; // 게시판 목록 페이지로 이동 예시-->
+<!--        })-->
+<!--        .catch(function(error) {-->
+<!--            console.log('error => ', error);-->
+<!--        });-->
+
+
+
+<!--        axios.post("/boardWrite",{-->
+<!--            boardTitle: boardTitle,-->
+<!--            boardContent : boardContent,-->
+<!--            userNo : writer-->
+<!--        })-->
+<!--        .then(function(data){-->
+<!--            console.log('data => ',data);-->
+<!--        })-->
+<!--        .catch(function(error){-->
+<!--            console.log('error => ',error);-->
+<!--        })-->
+
+<!--    });-->
+</script>
+</html>

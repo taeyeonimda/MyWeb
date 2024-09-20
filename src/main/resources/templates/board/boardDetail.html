@@ -76,10 +76,14 @@
                         </th:block>
 
                         <th:block th:if="${com.depth != 0}">
-                            <p> => [[${com.comContent}]]</p>
+                            <div class="contentDiv gray3-border">
+                                <textarea class="form-control textarea-Class" row="1"
+                                          th:data-id="${com.id}"  readonly="true">[[${com.comContent}]]</textarea>
+                            </div>
                             <div class="btnWrapper">
                                 <th:block th:if="${com.userNo == currentUser.id }">
                                     <p class="text-body-secondary modified pBtn gray6" th:data-id="${com.id}">수정</p>
+                                    <p class="text-body-secondary canceled pBtn gray6" th:data-id="${com.id}">취소</p>
                                     <p class="text-body-secondary deleteP pBtn gray6" th:data-id="${com.id}">삭제</p>
                                 </th:block>
                                 <p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply2">댓글달기</p>

@@ -1,4 +1,6 @@
 # 기존에 만들었던 Spring Legacy프로젝트를 리팩토링 </br> SpringBoot, JPA 기타등등...
+### SpringBoot, Java , Spring
+###
 
 # 채팅기능
 ***
@@ -38,7 +40,9 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 ### 3. 댓글 , 좋아요 수 같이 불러오기
 ### 4. 댓글 수정
 ### 5. 댓글 삭제
-#### -> 댓글에 대댓글이 있는 경우 삭제하지못하고 [삭제된 내용입니다] 라는 내용이 보이도록 , 대댓글이 없는 경우 삭제, 이미 [삭제된 내용입니다] 라고 변경된 경우 comDelete라는 새로운 필드를 만들어 체크 후 알람이 가게 구현
+#### ==> 댓글에 대댓글이 있는 경우 삭제하지못하고 [삭제된 내용입니다] 라는 내용이 보이도록 ,<br> 대댓글이 없는 경우 삭제, 이미 [삭제된 내용입니다] 라고 변경된 경우 comDelete라는 새로운 필드를 만들어 <br> 체크 후 알람이 가게 구현
+### 6. 게시물 조회시 조회수 증가
+#### ==> Redis를 사용하여 게시물 조회시 게시물 ID, 회원 ID를 저장하여 조회수 중복증가 체크 <br> 해당 게시물을 읽은 뒤 1시간 뒤에 저장된 값이 사라져 조회수 증가가 가능하게 만듬
 
 ***
 ## * 미완성 & 수정 해야할 목록
@@ -46,8 +50,6 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 ### 1. 디자인 & 검색기능
 #### -> 디자인
 
-### 2. 1차 댓글만 수정 구현 대댓글등은 수정해야함
-***
 
 <img src="./src/main/resources/gitImage/board1.jpg">
 <img src="./src/main/resources/gitImage/board2.jpg">
@@ -55,3 +57,5 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 <img src="./src/main/resources/gitImage/commentModi2.jpg">
 <img src="./src/main/resources/gitImage/commentModi3.jpg">
 <img src="./src/main/resources/gitImage/commentDel.jpg">
+<img src="./src/main/resources/gitImage/redis.jpg">
+<img src="./src/main/resources/gitImage/redis2.jpg">

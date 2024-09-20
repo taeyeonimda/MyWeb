@@ -244,11 +244,16 @@ async function commentSubmit(event){
                         //depth가 0이아닐때
                         else{
                             // depth가 0이 아닐 때
-                            html += `<p> => ${comment.comContent}</p>
+                            html += `<!-- <p> => ${comment.comContent}</p>-->
+                                    <div class="contentDiv gray3-border">
+                                    <textarea class="form-control textarea-Class" row="1"
+                                          data-id="${comment.id}"  readonly="true">${comment.comContent}</textarea>
+                                    </div>
                                         <div class="btnWrapper">`;
 
                             if (stringUserNo === userNo) {
-                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}" >수정</p>
+                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                                            <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
                                             <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
                             }
 
@@ -392,7 +397,7 @@ async function reCommentSub(event){
                             // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
                             if (stringUserNo === currentUserId) {
                                 html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
                             }
 
                             // 댓글달기 버튼
@@ -417,12 +422,16 @@ async function reCommentSub(event){
 
                         } else {
                             // depth가 0이 아닐 때
-                            html += `<p> => ${comment.comContent}</p>
+                            html += `  <div class="contentDiv gray3-border">
+                                        <textarea class="form-control textarea-Class" row="1"
+                                          data-id="${comment.id}"  readonly="true">${comment.comContent}</textarea>
+                                        </div>
                         <div class="btnWrapper">`;
 
                             if (stringUserNo === currentUserId) {
                                 html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
+                                        <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
                             }
 
                             // 댓글달기 버튼 및 de2Recomment 폼 추가
@@ -552,13 +561,19 @@ async function reCommentSub2(event){
                         let stringUserNo = String(comment.userNo);
 
                         if (comment.depth === 0) {
-                            html += `<div class="contentDiv gray3-border">${comment.comContent}</div>
+                            html += `
+<!-- <div class="contentDiv gray3-border">${comment.comContent}</div> -->
+                            <div class="contentDiv gray3-border">
+                                <textarea class="form-control textarea-Class" row="1"
+                                          data-id="${com.id}"  readonly="true">${comment.comContent}</textarea>
+                            </div>
                         <div class="btnWrapper">`;
 
                             // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
                             if (stringUserNo === currentUserId) {
                                 html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
+                                         <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
                             }
 
                             // 댓글달기 버튼
@@ -588,7 +603,7 @@ async function reCommentSub2(event){
 
                             if (stringUserNo === currentUserId) {
                                 html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">>삭제</p>`;
+                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
                             }
 
                             // 댓글달기 버튼 및 de2Recomment 폼 추가

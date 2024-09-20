@@ -6,12 +6,21 @@ import com.MyWeb.board.service.BoardService;
 import com.MyWeb.boardComment.dto.BoardCommentDTO;
 import com.MyWeb.boardComment.entity.BoardComment;
 import com.MyWeb.boardComment.service.BoardCommentService;
+import com.MyWeb.common.FileRename;
+import com.MyWeb.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,9 +29,16 @@ import java.util.Optional;
 public class BoardController {
     private final BoardService boardService;
     private final BoardCommentService boardCommentService;
-    public BoardController(BoardService boardService, BoardCommentService boardCommentService) {
+    private final FileRename fileRename;
+
+    @Value("${file.uploads}")
+    private String uploadDir;
+
+
+    public BoardController(BoardService boardService, BoardCommentService boardCommentService, FileRename fileRename) {
         this.boardService = boardService;
         this.boardCommentService = boardCommentService;
+        this.fileRename = fileRename;
     }
 
     /**
@@ -78,11 +94,40 @@ public class BoardController {
         return "board/boards";
     }
 
+//    //게시물 하나 불러오기
+//    @GetMapping("/getBoard")
+//    public String getOneBoard(@RequestParam("boardNo")Long id,
+//                              Principal principal,
+//                              Model model){
+//        System.out.println(
+//                "currentUSER" + model.getAttribute("currentUser"));
+//
+//        Optional<Board> board = boardService.getOneBoard(id);
+//        if (board.isPresent()) {
+//            model.addAttribute("board", board);
+//        }
+//
+//        List<BoardCommentDTO> bcList = boardService.getAllComment(id);
+//        if (!bcList.isEmpty()) {
+//            model.addAttribute("bcList", bcList);
+//            System.out.println("bcList 여기니 => " + bcList);
+//        }
+//        return "board/boardDetail";
+//    }
+
     //게시물 하나 불러오기
     @GetMapping("/getBoard")
     public String getOneBoard(@RequestParam("boardNo")Long id,
+                              Principal principal,
                               Model model){
-        Optional<Board> board = boardService.getOneBoard(id);
+//        System.out.println(
+//                "currentUSER" + model.getAttribute("currentUser"));
+
+        User user = (User) model.getAttribute("currentUser");
+//        log.info(" userID ? {}",user.getId());
+        Long userId = user.getId();
+
+        Optional<Board> board = boardService.getOneBoard(id,userId);
         if (board.isPresent()) {
             model.addAttribute("board", board);
         }
@@ -226,4 +271,102 @@ public class BoardController {
             return refOrder + 1;
         }
     }
+
+    @ResponseBody
+    @PostMapping(value="/board/uploadImages",produces = "application/json;charset=utf-8")
+    public ResponseEntity<?> uploadImage(MultipartFile[] file){
+        try {
+            String fileName = null;
+            if (!file[0].isEmpty()) {
+                String webPath = null;
+                for (MultipartFile file1 : file) {
+                    String tempUploadDir = uploadDir;
+                    Path uploadPath = Paths.get(tempUploadDir);
+                    if (!Files.exists(uploadPath)) {
+                        Files.createDirectories(uploadPath);
+                    }
+
+                    fileName = file1.getOriginalFilename();
+                    fileName = fileRename.fileRename(uploadPath, fileName);
+
+                    Path filePath = uploadPath.resolve(fileName);
+                    Files.copy(file1.getInputStream(), filePath);
+
+                    System.out.println("filePath => " + filePath);
+                    System.out.println("fileName => " + fileName);
+
+                    // 파일 경로를 응답에 추가
+
+                    return ResponseEntity.ok().body(fileName);
+
+                }
+
+            }else{
+                System.out.println("비었음");
+            }
+
+        }catch (Exception e){
+            System.out.println("error -> " +e);
+            return ResponseEntity.badRequest().build();
+        }
+        return null;
+    }
+
+
+
+    @GetMapping("/writeForm")
+    public String writeForm(){
+        return "board/boardWrite";
+    }
+
+//    @PostMapping("/boardWrite")
+//    public ResponseEntity<?> handleFileUpload(@RequestParam("memberNo") Long memberNo,
+//                                              @RequestParam("boardTitle") String boardTitle,
+//                                              @RequestParam("boardContent") String boardContent,
+//                                              @RequestParam("boardFile") MultipartFile[] files) {
+//        // 파일 및 기타 데이터 처리 로직
+//        boardService.saveBoard(memberNo, boardTitle, boardContent, files);
+//        System.out.println("memberNO => "+memberNo);
+//        System.out.println("boardTitle => "+boardTitle);
+//        System.out.println("boardTitle => "+boardContent);
+//        System.out.println("boardTitle => "+files);
+//
+//        try{
+//            String fileName = null;
+//            String originFileName = null;
+//            if(!files[0].isEmpty()){
+//                String webPath = null;
+//                Board b = new Board();
+//                for (MultipartFile file1 : files) {
+//                    String tempUploadDir = uploadDir+"temp/board";
+//                    Path uploadPath = Paths.get(tempUploadDir);
+//                    if (!Files.exists(uploadPath)) {
+//                        Files.createDirectories(uploadPath);
+//                    }
+//
+//                    originFileName = file1.getOriginalFilename();
+//                    fileName = file1.getOriginalFilename();
+//                    fileName = fileRename.fileRename(uploadPath, fileName);
+//
+//                    Path filePath = uploadPath.resolve(fileName);
+//                    Files.copy(file1.getInputStream(), filePath);
+//
+//                    System.out.println("originFileName => "+originFileName);
+//                    System.out.println("fileName => "+fileName);
+//
+////                    File saveFile = new File();
+//
+//                }
+//
+//                return ResponseEntity.ok("Success");
+//            }else{
+//                System.out.println("파일이없으요");
+//            }
+//
+//        }catch (Exception e ){
+//            System.out.println("Exception => "+e);
+//            return null;
+//        }
+//        return ResponseEntity.ok("Success");
+//    }
 }
