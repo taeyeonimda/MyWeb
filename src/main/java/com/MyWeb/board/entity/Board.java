@@ -29,7 +29,7 @@ public class Board {
     @Column(name = "board_title")
     private String boardTitle;
 
-    @Column(name = "board_content")
+    @Column(name = "board_content", columnDefinition = "TEXT")
     private String boardContent;
 
     @Column(name = "board_count")
@@ -49,7 +49,9 @@ public class Board {
     @OneToMany(mappedBy = "board", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<BoardComment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "board", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL)
     private List<BoardLike> likes = new ArrayList<>();
 
 

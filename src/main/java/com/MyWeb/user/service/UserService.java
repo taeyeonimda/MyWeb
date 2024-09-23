@@ -5,7 +5,6 @@ import com.MyWeb.user.entity.CustomUserOAuth;
 import com.MyWeb.user.entity.User;
 import com.MyWeb.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -107,5 +106,9 @@ public class UserService implements UserDetailsService {
     public String findGetProfilePhoto(String chatMember) {
         Long userId = Long.valueOf(chatMember);
         return userRepository.findProfilePhotoById(userId);
+    }
+
+    public Optional<User> findById(Long memberNo) {
+        return userRepository.findById(memberNo);
     }
 }

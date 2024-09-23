@@ -16,7 +16,8 @@ public interface BoardRepository extends JpaRepository<Board,Long> {
         "FROM Board b " +
         "LEFT JOIN b.comments bc " +
         "LEFT JOIN b.likes bl " +
-        "GROUP BY b.id, b.user.id, b.user.nickName, b.boardTitle, b.boardCount, b.boardDate")
+        "GROUP BY b.id, b.user.id, b.user.nickName, b.boardTitle, b.boardCount, b.boardDate " +
+        "ORDER BY b.id DESC ")
     Page<BoardSummaryDTO> findAllWithCommentAndLikeCount(PageRequest pageable);
 
 

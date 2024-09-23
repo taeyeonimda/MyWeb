@@ -43,7 +43,8 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 #### ==> 댓글에 대댓글이 있는 경우 삭제하지못하고 [삭제된 내용입니다] 라는 내용이 보이도록 ,<br> 대댓글이 없는 경우 삭제, 이미 [삭제된 내용입니다] 라고 변경된 경우 comDelete라는 새로운 필드를 만들어 <br> 체크 후 알람이 가게 구현
 ### 6. 게시물 조회시 조회수 증가
 #### ==> Redis를 사용하여 게시물 조회시 게시물 ID, 회원 ID를 저장하여 조회수 중복증가 체크 <br> 해당 게시물을 읽은 뒤 1시간 뒤에 저장된 값이 사라져 조회수 증가가 가능하게 만듬
-
+### 7. 게시물 작성 & 게시물 불러오기 수정 
+#### ===> 작성시는 Summernote 라이브러리 사용 , 파일 첨부시 첨부파일 목록 및 다운로드 구현 <br>
 ***
 ## * 미완성 & 수정 해야할 목록
 
@@ -59,3 +60,5 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 <img src="./src/main/resources/gitImage/commentDel.jpg">
 <img src="./src/main/resources/gitImage/redis.jpg">
 <img src="./src/main/resources/gitImage/redis2.jpg">
+<img src="./src/main/resources/gitImage/boardWrite1.jpg">
+<img src="./src/main/resources/gitImage/boardFileDown.jpg">

@@ -7,15 +7,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    @Value("${file.user-profile}")
-    private String profileImg;
+//    @Value("${file.user-profile}")
+//    private String profileImg;
+//
+//    @Value("${file.chatImg}")
+//    private String chatImage;
+//
+//    @Value("${file.uploads}")
+//    private String boardImage;
 
-    @Value("${file.chatImg}")
-    private String chatImage;
+    @Value("${file.uploads}")
+    private String uploadDir;
+
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/uploads/**")
+//                .addResourceLocations("file:" + profileImg, "file:" + chatImage, "file:" +boardImage);
+//    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + profileImg, "file:" + chatImage);
+                .addResourceLocations("file:" + uploadDir);
+
     }
 }

@@ -15,7 +15,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -168,5 +167,10 @@ public class BoardService {
 
         // 조회수 증가 여부와 관계없이 게시물 반환
         return boardRepository.findById(id);
+    }
+
+
+    public Board saveBoard(Board saveBoard) {
+        return boardRepository.save(saveBoard);
     }
 }

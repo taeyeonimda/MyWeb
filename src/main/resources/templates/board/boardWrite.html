@@ -50,30 +50,33 @@
         }
     });
 
-    async function uploadImage(files, editor) {
-        try {
-            const file = files;
-            const form = new FormData();
-            form.append("file", file);
-            const response = await axios.post('/board/uploadImages', form,
-                {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
-            });
-            console.log('response =>', response);
-            const data = 'uploads/board/' + response.data;
-            console.log('data =>', data);
-            $(editor).summernote("insertImage", data);
-        } catch (error) {
-            console.log('error =>', error.message);
-        }
-    }
+    // async function uploadImage(files, editor) {
+    //     try {
+    //         const file = files;
+    //         const form = new FormData();
+    //         form.append("file", file);
+    //         console.log(' form => ',form);
+    //         const response = await axios.post('/board/uploadImages', form,
+    //             {
+    //             headers: {
+    //                 'Content-Type': 'multipart/form-data',
+    //             }
+    //         });
+    //         console.log('response =>', response);
+    //         let data = 'uploads/board/' + response.data;
+    //         console.log('data =>', data);
+    //         // let data2 = 'http://172.20.4.179/uploads/board/스크린샷 2023-11-09 175940.png';
+    //         $(editor).summernote("insertImage", data);
+    //     } catch (error) {
+    //         console.log('error =>', error.message);
+    //     }
+    // }
 
     function uploadImage(files,editor){
             const file = files;
             const form = new FormData();
             form.append("file", file);
+            console.log(' form => ',form);
             axios.post('/board/uploadImages',form,{
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -81,9 +84,10 @@
             })
             .then (response =>{
                 console.log('response => ',response);
-                const data = 'uploads/temp/board/'+response.data;
+                const data = 'uploads/board/'+response.data;
                 console.log('data => ',data);
-                $(editor).summernote("insertImage",data);
+                console.log('editor ? = > ',editor);
+                $(editor).summernote('insertImage',data);
             })
             .catch( error =>{
                 console.log('error => ',error.message);
@@ -123,7 +127,7 @@
         .then(function(response) {
             console.log('data => ', response.data);
             // 성공 시, 원하는 페이지로 이동하거나 성공 메시지 표시
-            window.location.href = '/board'; // 게시판 목록 페이지로 이동 예시
+            window.location.href = '/'+response.data; // 게시판 목록 페이지로 이동 예시
         })
         .catch(function(error) {
             console.log('error => ', error);

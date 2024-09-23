@@ -1,5 +1,10 @@
 package com.MyWeb.board.controller;
 
+import com.MyWeb.File.dto.FileDTO;
+import com.MyWeb.File.entity.File;
+import com.MyWeb.File.repository.FileRepository;
+import com.MyWeb.File.service.FileService;
+import com.MyWeb.board.dto.BoardDTO;
 import com.MyWeb.board.dto.BoardSummaryDTO;
 import com.MyWeb.board.entity.Board;
 import com.MyWeb.board.service.BoardService;
@@ -8,19 +13,29 @@ import com.MyWeb.boardComment.entity.BoardComment;
 import com.MyWeb.boardComment.service.BoardCommentService;
 import com.MyWeb.common.FileRename;
 import com.MyWeb.user.entity.User;
+import com.MyWeb.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,17 +43,25 @@ import java.util.Optional;
 @Controller
 public class BoardController {
     private final BoardService boardService;
+    private final UserService userService;
     private final BoardCommentService boardCommentService;
     private final FileRename fileRename;
+    private final FileService fileService;
+    private final FileRepository fileRepository;
 
     @Value("${file.uploads}")
     private String uploadDir;
 
 
-    public BoardController(BoardService boardService, BoardCommentService boardCommentService, FileRename fileRename) {
+    public BoardController(BoardService boardService, UserService userService,
+                           BoardCommentService boardCommentService, FileRename fileRename,
+                           FileService fileService, FileRepository fileRepository) {
         this.boardService = boardService;
+        this.userService = userService;
         this.boardCommentService = boardCommentService;
         this.fileRename = fileRename;
+        this.fileService = fileService;
+        this.fileRepository = fileRepository;
     }
 
     /**
@@ -120,8 +143,7 @@ public class BoardController {
     public String getOneBoard(@RequestParam("boardNo")Long id,
                               Principal principal,
                               Model model){
-//        System.out.println(
-//                "currentUSER" + model.getAttribute("currentUser"));
+
 
         User user = (User) model.getAttribute("currentUser");
 //        log.info(" userID ? {}",user.getId());
@@ -132,10 +154,17 @@ public class BoardController {
             model.addAttribute("board", board);
         }
 
+        List<File> files = fileService.getAllFile(id);
+        if (!files.isEmpty()) {
+            model.addAttribute("files", files);
+//            System.out.println("bcList 여기니 => " + bcList);
+//            log.info(" GetBoard의 Files {} ",files);
+        }
+
         List<BoardCommentDTO> bcList = boardService.getAllComment(id);
         if (!bcList.isEmpty()) {
             model.addAttribute("bcList", bcList);
-            System.out.println("bcList 여기니 => " + bcList);
+//            System.out.println("bcList 여기니 => " + bcList);
         }
         return "board/boardDetail";
     }
@@ -274,13 +303,13 @@ public class BoardController {
 
     @ResponseBody
     @PostMapping(value="/board/uploadImages",produces = "application/json;charset=utf-8")
-    public ResponseEntity<?> uploadImage(MultipartFile[] file){
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile[] file){
         try {
             String fileName = null;
             if (!file[0].isEmpty()) {
                 String webPath = null;
                 for (MultipartFile file1 : file) {
-                    String tempUploadDir = uploadDir;
+                    String tempUploadDir = uploadDir+"board";
                     Path uploadPath = Paths.get(tempUploadDir);
                     if (!Files.exists(uploadPath)) {
                         Files.createDirectories(uploadPath);
@@ -292,9 +321,7 @@ public class BoardController {
                     Path filePath = uploadPath.resolve(fileName);
                     Files.copy(file1.getInputStream(), filePath);
 
-                    System.out.println("filePath => " + filePath);
-                    System.out.println("fileName => " + fileName);
-
+                    log.info("filePath {} fileName {} ",filePath, fileName);
                     // 파일 경로를 응답에 추가
 
                     return ResponseEntity.ok().body(fileName);
@@ -319,54 +346,100 @@ public class BoardController {
         return "board/boardWrite";
     }
 
-//    @PostMapping("/boardWrite")
-//    public ResponseEntity<?> handleFileUpload(@RequestParam("memberNo") Long memberNo,
-//                                              @RequestParam("boardTitle") String boardTitle,
-//                                              @RequestParam("boardContent") String boardContent,
-//                                              @RequestParam("boardFile") MultipartFile[] files) {
-//        // 파일 및 기타 데이터 처리 로직
-//        boardService.saveBoard(memberNo, boardTitle, boardContent, files);
-//        System.out.println("memberNO => "+memberNo);
-//        System.out.println("boardTitle => "+boardTitle);
-//        System.out.println("boardTitle => "+boardContent);
-//        System.out.println("boardTitle => "+files);
-//
-//        try{
-//            String fileName = null;
-//            String originFileName = null;
-//            if(!files[0].isEmpty()){
-//                String webPath = null;
-//                Board b = new Board();
-//                for (MultipartFile file1 : files) {
-//                    String tempUploadDir = uploadDir+"temp/board";
-//                    Path uploadPath = Paths.get(tempUploadDir);
-//                    if (!Files.exists(uploadPath)) {
-//                        Files.createDirectories(uploadPath);
-//                    }
-//
-//                    originFileName = file1.getOriginalFilename();
-//                    fileName = file1.getOriginalFilename();
-//                    fileName = fileRename.fileRename(uploadPath, fileName);
-//
-//                    Path filePath = uploadPath.resolve(fileName);
-//                    Files.copy(file1.getInputStream(), filePath);
-//
-//                    System.out.println("originFileName => "+originFileName);
-//                    System.out.println("fileName => "+fileName);
-//
-////                    File saveFile = new File();
-//
-//                }
-//
-//                return ResponseEntity.ok("Success");
-//            }else{
-//                System.out.println("파일이없으요");
-//            }
-//
-//        }catch (Exception e ){
-//            System.out.println("Exception => "+e);
-//            return null;
-//        }
-//        return ResponseEntity.ok("Success");
-//    }
+    @PostMapping("/boardWrite")
+    public ResponseEntity<?> handleFileUpload(@RequestParam("memberNo") Long memberNo,
+                                              @RequestParam("boardTitle") String boardTitle,
+                                              @RequestParam("boardContent") String boardContent,
+                                              @RequestParam("boardFile") MultipartFile[] files) {
+
+        Optional<User> users = userService.findById(memberNo); // 예시: memberNo로 User를 찾는 서비스 메소드
+        User user = users.get();
+
+//        Long userId = user.getId();
+
+        // BoardDTO 생성
+        BoardDTO saveBoard = new BoardDTO(
+                boardTitle, memberNo, LocalDate.now(), "0",
+                0, boardContent
+        );
+
+        // Board 엔티티로 변환
+        Board board = saveBoard.toEntity(user);
+        Board savedBoard = boardService.saveBoard(board);
+
+        log.info("SavedBoard : {} ",savedBoard);
+
+        log.info("MemberNo : {}, boardTitle : {} ",memberNo, boardTitle);
+        log.info("boardContent : {}, boardFile : {} ",boardContent, Arrays.toString(files));
+
+        try{
+            String fileName = null;
+            String originFileName = null;
+            if(!files[0].isEmpty()){
+                String webPath = null;
+                Board b = new Board();
+                for (MultipartFile file1 : files) {
+                    String tempUploadDir = uploadDir+"board";
+                    Path uploadPath = Paths.get(tempUploadDir);
+                    if (!Files.exists(uploadPath)) {
+                        Files.createDirectories(uploadPath);
+                    }
+
+                    originFileName = file1.getOriginalFilename();
+                    fileName = file1.getOriginalFilename();
+                    fileName = fileRename.fileRename(uploadPath, fileName);
+
+                    Path filePath = uploadPath.resolve(fileName);
+                    Files.copy(file1.getInputStream(), filePath);
+
+                    System.out.println("originFileName => "+originFileName);
+                    System.out.println("fileName => "+fileName);
+
+                    FileDTO saveFile = FileDTO.builder()
+                            .fileName(fileName)
+                            .filePath(String.valueOf(filePath))
+                            .type("board") // 파일 타입 어디서 저장되었는지
+                            .refId(savedBoard.getId()) // 참조아이디 현재 기준으론 board Id
+                            .user(user)
+                            .build();
+
+                    File entityFile = saveFile.toEntity();
+                    File savedFile = fileService.save(entityFile);
+
+                }
+
+                return ResponseEntity.ok("getBoard?boardNo="+savedBoard.getId());
+            }else{
+                System.out.println("파일이없으요");
+            }
+
+        }catch (Exception e ){
+            System.out.println("Exception => "+e);
+            return null;
+        }
+        return ResponseEntity.ok("Success");
+    }
+
+    @GetMapping("/boardFileDown/{id}")
+    public ResponseEntity<Resource>  downloadBoardFile(@PathVariable("id") Long id) throws IOException {
+        Optional<File> opFile = fileRepository.findById(id);
+        File file = opFile.get();
+
+        Path filePath = Paths.get(file.getFilePath()).toAbsolutePath().normalize();
+        UrlResource resource = new UrlResource(filePath.toUri());
+
+        log.info(" File ID : {} , filePath : {} , UrlResource : {} ",id,filePath,resource);
+
+        String contentType = Files.probeContentType(filePath);
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        String encodedUploadFile = UriUtils.encode(file.getFileName(), StandardCharsets.UTF_8);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedUploadFile + "\"")
+                .body(resource);
+    }
 }
