@@ -1,0 +1,11 @@
+th{
+    background-color:#0F4229 !important;
+    color:white;
+}
+
+.buttonClass{
+    padding : 2px 4px 2px 4px !important;
+}
+.trHidden{
+    display:none;
+}

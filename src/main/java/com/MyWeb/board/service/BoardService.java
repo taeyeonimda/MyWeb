@@ -56,7 +56,6 @@ public class BoardService {
 
 //        String redisKey = VIEW_KEY_PREFIX + boardId + ":" + userId;
 
-
         return boardRepository.findById(id);
     }
 
@@ -169,8 +168,13 @@ public class BoardService {
         return boardRepository.findById(id);
     }
 
-
+    @Transactional(rollbackOn = {Exception.class})
     public Board saveBoard(Board saveBoard) {
         return boardRepository.save(saveBoard);
+    }
+
+    @Transactional(rollbackOn = {Exception.class})
+    public void deleteOneBoard(Long id) {
+        boardRepository.deleteById(id);
     }
 }

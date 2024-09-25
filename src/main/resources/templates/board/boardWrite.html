@@ -6,6 +6,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<link rel="stylesheet" href="../css/board/boardForm.css">
 <body>
 <div th:replace="~{/fragments/header.html}"></div>
     <div class='container-fluid'>
@@ -16,7 +17,14 @@
                     <th><label for ="contentHead">제목</label></th>
                     <td colspan="3">
                         <input id="memberNo" name="memberNo" type="hidden" th:value="${currentUser.id }">
-                        <input id="contentHead" name="boardTitle" type="text" class="form-control">
+                        <th:block th:if="${board} != null">
+                            <input id="boardCount" name="boardCount" type="hidden" th:value="${board.getBoardCount()}">
+                            <input id="boardNo" name="boardNo" type="hidden" th:value="${board.getId() }">
+                            <input id="contentHead" name="boardTitle" th:value="${board.getBoardTitle()}" type="text" class="form-control">
+                        </th:block>
+                        <th:block th:if="${board} == null">
+                            <input id="contentHead" name="boardTitle" type="text" class="form-control">
+                        </th:block>
                     </td>
                 </tr>
                 <tr>
@@ -25,9 +33,38 @@
                         <input type="file" name="boardFile" multiple>
                     </td>
                 </tr>
+                <th:block th:if="${board} != null">
+                    <tr>
+                        <th>파일목록</th>
+                        <td>
+                            <th:block th:each="file : ${files}">
+                                <div th:id="${file.id}">
+                                    <a th:href="@{/boardFileDown/{id}(id = ${file.id})}" th:text="${file.fileName}"></a>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm buttonClass" th:data-id="${file.id}" onclick="removeFile(this)">삭제</button>
+                                </div>
+                            </th:block>
+                        </td>
+                    </tr>
+                </th:block>
                 <tr>
-                    <th style="background-color:#0F4229; color:white;">내용</th>
-                    <td><textarea name="boardContent" id="boardContent"></textarea></td>
+                    <th >내용</th>
+                    <td>
+                        <th:block th:if="${board} != null">
+                            <textarea name="boardContent" id="boardContent"></textarea>
+
+<!--                            <div name="boardContent" id="boardContent" th:utext="${board.getBoardContent()}"></div>-->
+                            <input type="hidden" id="boardContentHidden" name="boardContentHidden">
+                        </th:block>
+                        <th:block th:if="${board} == null">
+                            <textarea name="boardContent" id="boardContent"></textarea>
+                        </th:block>
+                    </td>
+
+                </tr>
+                <tr class="trHidden">
+                    <th>
+                        <input type="hidden" name="deletedFiles" id="deletedFiles">
+                    </th>
                 </tr>
             </table>
             <div class="boardWriteBtnBox">
@@ -35,8 +72,20 @@
             </div>
         </form>
     </div>
+
+<div>[[${board}]]</div>
+<div>[[${files}]]</div>
+
 </body>
 <script>
+    let boardContent2 = '[[${board != null ? board.boardContent : ""}]]';
+    if (boardContent2 !== "") {
+        let decodedContent = $("<textarea/>").html(boardContent2).text();
+        console.log("Decoded Content: ", decodedContent);
+        let modifiedContent = decodedContent.replace(/uploads\/board\//g, 'http://172.20.4.179/uploads/board/');
+        $('#boardContent').summernote('code', modifiedContent);
+    }
+
     $("#boardContent").summernote({
         height:400,
         lang:"ko-KR",
@@ -50,27 +99,8 @@
         }
     });
 
-    // async function uploadImage(files, editor) {
-    //     try {
-    //         const file = files;
-    //         const form = new FormData();
-    //         form.append("file", file);
-    //         console.log(' form => ',form);
-    //         const response = await axios.post('/board/uploadImages', form,
-    //             {
-    //             headers: {
-    //                 'Content-Type': 'multipart/form-data',
-    //             }
-    //         });
-    //         console.log('response =>', response);
-    //         let data = 'uploads/board/' + response.data;
-    //         console.log('data =>', data);
-    //         // let data2 = 'http://172.20.4.179/uploads/board/스크린샷 2023-11-09 175940.png';
-    //         $(editor).summernote("insertImage", data);
-    //     } catch (error) {
-    //         console.log('error =>', error.message);
-    //     }
-    // }
+
+
 
     function uploadImage(files,editor){
             const file = files;
@@ -96,98 +126,116 @@
 
     $('#boardWriteBtn').on('click', function(e) {
         e.preventDefault();
+        let locationPath = window.location.pathname;
 
-        const boardTitle = $("#contentHead").val();
-        const boardContent = $("#boardContent").val();
-        const writer = $("#memberNo").val();
+        if(locationPath.includes('Edit')){
+            console.info("=======EDIT=======");
 
-        if(boardTitle === "") {
-            alert('제목을 입력해주세요');
-            return false;
-        }
-        if(boardContent === "") {
-            alert('내용을 입력해주세요');
-            return false;
-        }
-        if(writer === null || writer === "") {
-            alert('로그인을 해주세요');
-            return false;
-        }
+            const boardTitle = $("#contentHead").val();
+            // let boardContent = $('#boardContent').summernote('code');
+            // $('#boardContent').val(boardContent);  // 폼 데이터에 summernote 내용을 반영
+            const writer = $("#memberNo").val();
 
-        console.log('BoardContent => ', boardContent);
+            let boardContent = $('#boardContent').summernote('code'); // Summernote에서 콘텐츠 가져오기
+            $('#boardContentHidden').val(boardContent);  // hidden 필드에 summernote 내용을 저장
+            let deletedFilesInput = document.getElementById('deletedFiles');
 
-        // FormData 객체를 생성하여 폼 데이터를 추가
-        const formData = new FormData(document.getElementById('boardWriteForm'));
 
-        axios.post('/boardWrite', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+            if(boardTitle === "") {
+                alert('제목을 입력해주세요');
+                return false;
             }
-        })
-        .then(function(response) {
-            console.log('data => ', response.data);
-            // 성공 시, 원하는 페이지로 이동하거나 성공 메시지 표시
-            window.location.href = '/'+response.data; // 게시판 목록 페이지로 이동 예시
-        })
-        .catch(function(error) {
-            console.log('error => ', error);
-        });
+            if(boardContent === "") {
+                alert('내용을 입력해주세요');
+                return false;
+            }
+            if(writer === null || writer === "") {
+                alert('로그인을 해주세요');
+                return false;
+            }
+
+            console.log('boardTitle => ', boardTitle);
+            console.log('BoardContent => ', boardContent);
+            console.log('writer => ', writer);
+            console.log('deletedFilesInput.value => ',deletedFilesInput.value);
+
+            // FormData 객체를 생성하여 폼 데이터를 추가
+            const formData = new FormData(document.getElementById('boardWriteForm'));
+            formData.append('delValues',deletedFilesInput.value);
+            axios.post('/boardEdit', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+                .then(function(response) {
+                    console.log('data => ', response.data);
+                    // 성공 시, 원하는 페이지로 이동하거나 성공 메시지 표시
+                    window.location.href = '/'+response.data; // 게시판 목록 페이지로 이동 예시
+                })
+                .catch(function(error) {
+                    console.log('error => ', error);
+                });
+
+
+        }else{
+            console.info("=======NEW=======");
+
+            const boardTitle = $("#contentHead").val();
+            const boardContent = $("#boardContent").val();
+            const writer = $("#memberNo").val();
+
+            if(boardTitle === "") {
+                alert('제목을 입력해주세요');
+                return false;
+            }
+            if(boardContent === "") {
+                alert('내용을 입력해주세요');
+                return false;
+            }
+            if(writer === null || writer === "") {
+                alert('로그인을 해주세요');
+                return false;
+            }
+
+            console.log('BoardContent => ', boardContent);
+
+            // FormData 객체를 생성하여 폼 데이터를 추가
+            const formData = new FormData(document.getElementById('boardWriteForm'));
+
+            axios.post('/boardWrite', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            .then(function(response) {
+                console.log('data => ', response.data);
+                // 성공 시, 원하는 페이지로 이동하거나 성공 메시지 표시
+                window.location.href = '/'+response.data; // 게시판 목록 페이지로 이동 예시
+            })
+            .catch(function(error) {
+                console.log('error => ', error);
+            });
+
+        }
+
     });
 
+    function removeFile(button) {
+        const fileId = button.getAttribute("data-id");
+        console.log('fileId => ', fileId);
+        // 삭제할 파일 ID를 hidden input에 추가
+        let deletedFilesInput = document.getElementById('deletedFiles');
+        let currentDeletedFiles = deletedFilesInput.value ? deletedFilesInput.value.split(',') : [];
 
+        // // 파일 ID 추가 (중복 방지)
+        if (!currentDeletedFiles.includes(fileId.toString())) {
+            currentDeletedFiles.push(fileId);
+            deletedFilesInput.value = currentDeletedFiles.join(',');
+        }
 
-<!--    $("#boardWriteBtn").on("click",function(e){-->
-<!--        e.preventDefault();-->
-<!--        alert('하이용');-->
-<!--        const boardTitle = $("#contentHead");-->
-<!--        const boardContent = $("#boardContent");-->
-<!--        const boardWriteForm = $("#boardWriteForm");-->
-<!--        const writer = $("#memberNo");-->
+        // // 화면에서 해당 파일 제거
+        document.getElementById(fileId).remove();
+    }
 
-<!--        if(boardTitle.val()==""){-->
-<!--            alert('제목을 입력해주세요');-->
-<!--            return false;-->
-<!--        }-->
-<!--        if(boardContent.val()==""){-->
-<!--            alert('내용을 입력해주세요');-->
-<!--            return false;-->
-<!--        }-->
-<!--        if(writer.val()==null || writer.val()==""){-->
-<!--            alert('로그인을 해주세요');-->
-<!--            return false;-->
-<!--        }-->
-<!--        console.log('BoardContent => ', boardContent.val());-->
-
-<!--        const formData = new FormData(document.getElementById('boardWriteForm'));-->
-
-<!--          axios.post('/boardWrite', formData, {-->
-<!--            headers: {-->
-<!--                'Content-Type': 'multipart/form-data'-->
-<!--            }-->
-<!--        })-->
-<!--        .then(function(response) {-->
-<!--            console.log('data => ', response.data);-->
-<!--            // 성공 시, 원하는 페이지로 이동하거나 성공 메시지 표시-->
-<!--            window.location.href = '/board'; // 게시판 목록 페이지로 이동 예시-->
-<!--        })-->
-<!--        .catch(function(error) {-->
-<!--            console.log('error => ', error);-->
-<!--        });-->
-
-
-
-<!--        axios.post("/boardWrite",{-->
-<!--            boardTitle: boardTitle,-->
-<!--            boardContent : boardContent,-->
-<!--            userNo : writer-->
-<!--        })-->
-<!--        .then(function(data){-->
-<!--            console.log('data => ',data);-->
-<!--        })-->
-<!--        .catch(function(error){-->
-<!--            console.log('error => ',error);-->
-<!--        })-->
-
-<!--    });-->
 </script>
 </html>

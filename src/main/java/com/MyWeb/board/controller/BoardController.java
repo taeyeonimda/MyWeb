@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -198,13 +200,11 @@ public class BoardController {
     @GetMapping("/boards/{boardNo}/comments")
     @ResponseBody
     public List<BoardCommentDTO> insertComment(@PathVariable("boardNo") Long boardNo, Model model) {
-        System.out.println("댓글달고 도는지 확인");
         // 새로운 댓글 목록을 조회하여 반환
         List<BoardCommentDTO> bcList = boardService.getAllComment(boardNo);
 //        System.out.println("bcList => "+bcList);
         //댓글 작성 후 기존 bcList덮어쓰기
         model.addAttribute("bcList", bcList);
-        System.out.println("모델값 확인 => " + model.getAttribute("bcList"));
         return bcList;
     }
 
@@ -358,9 +358,9 @@ public class BoardController {
 //        Long userId = user.getId();
 
         // BoardDTO 생성
-        BoardDTO saveBoard = new BoardDTO(
-                boardTitle, memberNo, LocalDate.now(), "0",
-                0, boardContent
+        BoardDTO saveBoard =
+                new BoardDTO(
+                null, memberNo, boardTitle, boardContent, 0, LocalDate.now()
         );
 
         // Board 엔티티로 변환
@@ -417,8 +417,100 @@ public class BoardController {
             System.out.println("Exception => "+e);
             return null;
         }
-        return ResponseEntity.ok("Success");
+        return ResponseEntity.ok("getBoard?boardNo="+savedBoard.getId());
     }
+
+    @PostMapping("/boardEdit")
+    public ResponseEntity<?> boardUpdate(
+                            @RequestParam("boardCount") int boardCount,
+                            @RequestParam("boardNo") Long boardNo,
+                            @RequestParam("memberNo") Long memberNo,
+                            @RequestParam("boardTitle") String boardTitle,
+                            @RequestParam("boardContent") String boardContent,
+                            @RequestParam("boardFile") MultipartFile[] files,
+                            @RequestParam("delValues") String delValues) {
+            log.info("memberNo : {} , boardTitle : {} , boardContent : {} ," +
+                            " Files : {} , delValues : {} , boardCount : {}",
+                    memberNo,boardTitle,boardContent,files,delValues, boardCount);
+
+
+        /**
+         * 해야할꺼 delValues에 값 있는것들은 delete 해주고(완료)
+         * files에 값있으면 insert해주고
+         * 지금 게시물은 최종적으로 update
+         */
+
+        log.info("files SIZE => {} ",files.length);
+        fileService.delFiles(delValues);
+        Optional<User> users = userService.findById(memberNo); // 예시: memberNo로 User를 찾는 서비스 메소드
+        User user = users.get();
+
+        Long userId = user.getId();
+
+        // BoardDTO 생성
+        BoardDTO saveBoard =
+                new BoardDTO(
+                        boardNo, memberNo, boardTitle, boardContent, boardCount ,
+                         LocalDate.now()
+                );
+
+        // Board 엔티티로 변환
+        Board board = saveBoard.toEntity(user);
+        Board savedBoard = boardService.saveBoard(board);
+//
+//        log.info("SavedBoard : {} ",savedBoard);
+
+//        log.info("MemberNo : {}, boardTitle : {} ",memberNo, boardTitle);
+//        log.info("boardContent : {}, boardFile : {} ",boardContent, Arrays.toString(files));
+
+        try{
+            String fileName = null;
+            String originFileName = null;
+            if(!files[0].isEmpty()){
+                String webPath = null;
+                Board b = new Board();
+                for (MultipartFile file1 : files) {
+                    String tempUploadDir = uploadDir+"board";
+                    Path uploadPath = Paths.get(tempUploadDir);
+                    if (!Files.exists(uploadPath)) {
+                        Files.createDirectories(uploadPath);
+                    }
+
+                    originFileName = file1.getOriginalFilename();
+                    fileName = file1.getOriginalFilename();
+                    fileName = fileRename.fileRename(uploadPath, fileName);
+
+                    Path filePath = uploadPath.resolve(fileName);
+                    Files.copy(file1.getInputStream(), filePath);
+
+                    System.out.println("originFileName => "+originFileName);
+                    System.out.println("fileName => "+fileName);
+
+                    FileDTO saveFile = FileDTO.builder()
+                            .fileName(fileName)
+                            .filePath(String.valueOf(filePath))
+                            .type("board") // 파일 타입 어디서 저장되었는지
+                            .refId(savedBoard.getId()) // 참조아이디 현재 기준으론 board Id
+                            .user(user)
+                            .build();
+
+                    File entityFile = saveFile.toEntity();
+                    File savedFile = fileService.save(entityFile);
+
+                }
+
+                return ResponseEntity.ok("getBoard?boardNo="+savedBoard.getId());
+            }else{
+                System.out.println("파일이없으요");
+            }
+
+        }catch (Exception e ){
+            System.out.println("Exception => "+e);
+            return null;
+        }
+        return ResponseEntity.ok("getBoard?boardNo="+savedBoard.getId());
+    }
+
 
     @GetMapping("/boardFileDown/{id}")
     public ResponseEntity<Resource>  downloadBoardFile(@PathVariable("id") Long id) throws IOException {
@@ -442,4 +534,49 @@ public class BoardController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedUploadFile + "\"")
                 .body(resource);
     }
+
+    @GetMapping("/boardEdit/{id}")
+    public String downloadBoardFile(@PathVariable("id") Long id,Model model){
+        Optional<Board> board = boardService.getOneBoard(id);
+        User user = (User) model.getAttribute("currentUser");
+        Long currentUserId = user.getId();
+
+        if(board.isPresent()){
+//            if(board.get().getUser())
+            Long ownerId = board.get().getUser().getId();
+//            log.info("BoardGetUser : {}, CurrentUser {} ", ownerId , currentUserId);
+            if(!ownerId.equals(currentUserId)){
+                throw new AccessDeniedException("수정 권한이 없습니다." );
+            }
+            Board b = board.get();
+            model.addAttribute("board",b);
+
+            List<File> files = fileService.getAllFile(b.getId());
+            if (!files.isEmpty()) {
+                model.addAttribute("files", files);
+            }
+        }
+        return "board/boardWrite";
+    }
+
+    @GetMapping("/boardDel/{id}")
+    public String delBoard(@PathVariable("id") Long id,Model model){
+        Optional<Board> board = boardService.getOneBoard(id);
+        User user = (User) model.getAttribute("currentUser");
+        Long currentUserId = user.getId();
+
+        if(board.isPresent()){
+            Long ownerId = board.get().getUser().getId();
+
+            if(!ownerId.equals(currentUserId)){
+                throw new AccessDeniedException("수정 권한이 없습니다." );
+            }else{
+                boardService.deleteOneBoard(id);
+                fileService.multiDelete(id,"board");
+            }
+        }
+
+        return "redirect:../boards";
+    }
+
 }

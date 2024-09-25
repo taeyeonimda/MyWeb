@@ -15,6 +15,9 @@
 
             <div class="card-header">
                 <h1 th:text="${board.get().boardTitle}"></h1>
+<!--                -->
+<!--                <input type="text" class="form-control d-none" id="edit-title"-->
+<!--                       th:value="${board.get().boardTitle}">-->
             </div>
 
             <div class="card-body">
@@ -32,8 +35,16 @@
                         </th:block>
                     </span>
                 </p>
-                <!--                <div class="card-text card-content">[[${board.get().boardContent}]]</div>-->
                 <div class="card-text card-content" th:utext="${board.get().boardContent}"></div>
+                <th:block th:if="${currentUser.id == board.get().getUser().id}">
+                    <a th:href="@{/boardEdit/{id}(id = ${board.get().id})}" >수정!!!</a>
+                    <p th:onclick="delConfirm()">삭제!!!</p>
+<!--                    th:href="@{/boardDel/{id}(id = ${board.get().id})}"-->
+
+                </th:block>
+
+<!--                <p class="text-body-secondary boardModified gray6" id="edit-btn" th:data-id="${board.get().id}">수정</p>-->
+<!--                <p class="text-body-secondary boardDelete gray6" th:data-id="${board.get().id}">삭제</p>-->
             </div>
 
             <!-- 댓글 입력 영역 -->
@@ -126,10 +137,20 @@
     </div><!--Container-->
     <script>
         let currentUserId = '[[${currentUser.id}]]';
+        let currentBoardId = '[[${board.get().id}]]';
+
+        function delConfirm(param){
+            let isDel = window.confirm("삭제할꺼니");
+            console.log('param')
+            if(isDel){
+                window.location.href = "/boardDel/"+currentBoardId;
+            }else{
+                console.log("2");
+            }
+            console.log('isDel = > ',isDel);
+
+        }
     </script>
    <script src="/js/boardDetail/commentsJs.js"></script>
-    <script>
-
-    </script>
 </body>
 </html>
