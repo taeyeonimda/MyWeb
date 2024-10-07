@@ -24,15 +24,19 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardCommentRepository boardCommentRepository;
     private final UserRepository userRepository;
+    private final SseEmitterService sseEmitterService;  // SSE 처리를 위한 서비스
+
+
 
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String VIEW_KEY_PREFIX = "post:view:";
 
-    public BoardService(BoardRepository boardRepository, BoardCommentRepository boardCommentRepository, UserRepository userRepository, RedisTemplate<String, Object> redisTemplate) {
+    public BoardService(BoardRepository boardRepository, BoardCommentRepository boardCommentRepository, UserRepository userRepository, SseEmitterService sseEmitterService, RedisTemplate<String, Object> redisTemplate) {
         this.boardRepository = boardRepository;
         this.boardCommentRepository = boardCommentRepository;
         this.userRepository = userRepository;
+        this.sseEmitterService = sseEmitterService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -177,4 +181,6 @@ public class BoardService {
     public void deleteOneBoard(Long id) {
         boardRepository.deleteById(id);
     }
+
+
 }

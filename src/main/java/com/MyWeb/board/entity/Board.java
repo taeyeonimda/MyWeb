@@ -54,11 +54,14 @@ public class Board {
             cascade = CascadeType.ALL)
     private List<BoardLike> likes = new ArrayList<>();
 
+    @Column(name = "like_count")
+    private int likeCount;
 
     @PrePersist
     protected void onCreate(){
         this.boardDate = LocalDate.now();
         this.boardCount = 0;
+        this.likeCount = 0;
     };
     public String getUserNickName(){
         return user != null ? user.getNickName() : null;

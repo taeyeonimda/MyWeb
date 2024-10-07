@@ -42,12 +42,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
-@Controller
-public class BoardController {
+//@Controller
+public class BoardController백업 {
     private final BoardService boardService;
     private final UserService userService;
     private final BoardCommentService boardCommentService;
@@ -56,18 +57,15 @@ public class BoardController {
     private final FileRepository fileRepository;
     private final BoardLikeService boardLikeService;
     private final SseEmitterService sseEmitterService;
-//    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
     private final SseEmitters sseEmitters;
-
 
     @Value("${file.uploads}")
     private String uploadDir;
 
 
-    public BoardController(BoardService boardService, UserService userService,
-                           BoardCommentService boardCommentService, FileRename fileRename,
-                           FileService fileService, FileRepository fileRepository, BoardLikeService boardLikeService, SseEmitterService sseEmitterService, SseEmitters sseEmitters) {
+    public BoardController백업(BoardService boardService, UserService userService,
+                             BoardCommentService boardCommentService, FileRename fileRename,
+                             FileService fileService, FileRepository fileRepository, BoardLikeService boardLikeService, SseEmitterService sseEmitterService, SseEmitters sseEmitters) {
         this.boardService = boardService;
         this.userService = userService;
         this.boardCommentService = boardCommentService;
@@ -181,9 +179,6 @@ public class BoardController {
             model.addAttribute("bcList", bcList);
 //            System.out.println("bcList 여기니 => " + bcList);
         }
-
-
-
         return "board/boardDetail";
     }
 
@@ -473,6 +468,11 @@ public class BoardController {
         // Board 엔티티로 변환
         Board board = saveBoard.toEntity(user);
         Board savedBoard = boardService.saveBoard(board);
+//
+//        log.info("SavedBoard : {} ",savedBoard);
+
+//        log.info("MemberNo : {}, boardTitle : {} ",memberNo, boardTitle);
+//        log.info("boardContent : {}, boardFile : {} ",boardContent, Arrays.toString(files));
 
         try{
             String fileName = null;
@@ -678,53 +678,43 @@ public class BoardController {
     }
 
 
-    //게시물 구독
-    @GetMapping(value = "/boardSub", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter>  subscribe(
-            @RequestParam(value="boardId") Long boardId,
-            Model model){
-        SseEmitter emitter = new SseEmitter(60 * 1000L);
-        sseEmitters.add(boardId, emitter);
-        try {
-            int boardSum = boardLikeService.getSumLike(boardId);
-            emitter.send(SseEmitter.event()
-                    .name("connect")
-                    .data(boardSum));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return ResponseEntity.ok(emitter);
+    /**
+     * SSE로 게시물 조회수 스트림 연결
+     */
+//    @GetMapping("/board/view/stream")
+//    public SseEmitter streamBoardView(@RequestParam(value="boardId") Long boardId) {
+//        log.info("여기되니 확인 {} ",boardId);
+//        return sseEmitterService.createEmitter(boardId);
+//    }
 
-    }
+//    @GetMapping("/board/view/stream")
+//    public ResponseEntity<SseEmitter> streamBoardView(@RequestParam(value="boardId") Long boardId) {
+//        log.info("여기되니 확인 {} ",boardId);
+//        SseEmitter emitter = new SseEmitter();
+//        sseEmitters.add(emitter);
+//        try {
+//            emitter.send(SseEmitter.event()
+//                    .name("sse")
+//                    .data("하이요"));
+//        }catch(IOException e){
+//            throw new RuntimeException(e);
+//        }
+////        return sseEmitterService.createEmitter(boardId);
+//        return ResponseEntity.ok(emitter);
+//
+//    }
 
-    //해당 게시물의 총 좋아요 갯수 체크
-    @PostMapping("/board/getBoardLike")
-    public ResponseEntity<Map<String, Object>> getBoardLike(@RequestParam("userId")Long userId,
-                                             @RequestParam("boardId")Long boardId){
-//        Map<String, Object> response = new HashMap<>();
 
-        log.info("1번 : {} , 2번 : {} ",userId,boardId);
-        //1번 해당 게시물의 전체좋아요 가져오기
-        int boardSum = boardLikeService.getSumLike(boardId);
+    /**
+     * SSE로 조회수 전송 (조회수 증가 로직 없이 조회만)
+     */
+    @GetMapping("/board/view")
+    public ResponseEntity<Void> viewBoard(@RequestParam(value="boardId") Long boardId) {
+        // 조회수 상태를 쿼리하여 SSE로 전송
+        log.info("컨트롤러 ViewDate : {} ",boardId);
+//         boardService.sendViewUpdate(boardId);
 
-        log.info("boardSum : {} ",boardSum);
-        sseEmitters.countLike(boardId, boardSum);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("boardSum", boardSum);
-
-        return ResponseEntity.ok(response);
-    }
-
-    //내가 좋아요 싫어요어떤걸 눌렀는지 체크
-    @PostMapping("/board/getBoardOneLike")
-    public ResponseEntity<Map<String, Object>> getOneBoardLike(@RequestParam("userId")Long userId,
-                                                            @RequestParam("boardId")Long boardId) {
-        int result = boardLikeService.getOneLike(userId,boardId);
-        Map<String, Object> response = new HashMap<>();
-        response.put("result", result);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().build();
     }
 
 

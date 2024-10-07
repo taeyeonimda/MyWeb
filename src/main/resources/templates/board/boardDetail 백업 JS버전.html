@@ -25,7 +25,7 @@
                     <span title="이름">
                         이름 : [[${board.get().user.nickName}]]</span>
                     <span title="등록일">등록일 : [[${board.get().boardDate}]]</span>
-                    <span title="조회수" id="viewCount">조회수 : [[${board.get().boardCount}]]</span>
+                    <span title="조회수">조회수 : [[${board.get().boardCount}]]</span>
                 </p>
                 <p class="card-title">
                     <span>
@@ -36,18 +36,10 @@
                     </span>
                 </p>
                 <div class="card-text card-content" th:utext="${board.get().boardContent}"></div>
-<!--                <button th:data-id="g" onclick="likeBtn(this)">좋아요버튼</button>-->
-<!--                <button th:data-id="f" onclick="likeBtn(this)">싫어요 버튼</button>-->
+                <button th:data-id="g" onclick="likeBtn(this)">좋아요버튼</button>
+                <button th:data-id="f" onclick="likeBtn(this)">싫어요 버튼</button>
 
-                <img src="/images/like1.png" alt="Like" id="like-img" onclick="likeImg(this)" width="30" height="30">
-                <img src="/images/hate1.png" alt="Hate" id="hate-img" onclick="likeImg(this)" width="30" height="30">
-
-                <div id="image-container"></div>
-
-
-                <span>[[${boardSum}]]</span>
-
-                <p id="likeCount">좋아요 숫자 => </p>
+                <p>좋아요 숫자 => [[${board.get().getLikeCount()}]]</p>
                 <th:block th:if="${currentUser.id == board.get().getUser().id}">
                     <a th:href="@{/boardEdit/{id}(id = ${board.get().id})}" >수정!!!</a>
                     <p th:onclick="delConfirm()">삭제!!!</p>
@@ -151,114 +143,20 @@
         let currentUserId = '[[${currentUser.id}]]';
         let currentBoardId = '[[${board.get().id}]]';
 
+        $(document).ready(function (){
+            const eventSource = new EventSource('/board/view/stream?boardId='+currentBoardId);
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // getBoardLikes();
-            getOneLike();
+            eventSource.onmessage = function(event) {
+                console.log('event => ',event);
+                let viewData = JSON.parse(event.data);
+                // 조회수를 화면에 업데이트
+                document.getElementById('viewCount').innerText = viewData.viewCount;
+            };
 
-            const source = new EventSource(`/boardSub?boardId=${currentBoardId}`);
 
-            source.addEventListener("connect", function (event) {
-                console.log('Connect event =====>',event);
-                $('#likeCount').text(event.data);
 
-            });
-
-            source.addEventListener("count",  function (event)  {
-                console.log('Count event =====>',event);
-                let receivedCount = event.data;
-                $('#likeCount').text(receivedCount);
-            });
         });
 
-        function getBoardLikes(){
-            console.log('되는지 확인 ? ');
-            axios.post('/board/getBoardLike',
-                new URLSearchParams(
-                    { userId: currentUserId,
-                        boardId : currentBoardId
-                    })
-                )
-                .then(response  =>{
-                    console.log('GetBoardLikes Data => ',response);
-                    console.log('GetBoardLikes boardSum=> ',response.data.boardSum);
-
-                    $('#likeCount').text(response.data.boardSum);
-
-                })
-                .catch(error =>{
-                    console.log(error.message);
-                })
-        }
-
-        function getOneLike(){
-            axios.post('/board/getBoardOneLike',
-                new URLSearchParams(
-                    { userId: currentUserId,
-                        boardId : currentBoardId
-                    })
-            )
-                .then(response  =>{
-                    console.log('getOneLike1 => ',response);
-                    console.log('getOneLike2 => ',response.data.result);
-
-                    // result 값을 변수에 저장합니다.
-                    const result = response.data.result;
-                    // 이미지를 추가할 HTML 요소를 선택합니다.
-                    const imageContainer = document.getElementById('image-container');
-
-                    // 이미지 경로를 설정합니다.
-                    let imagePath1 = '';
-                    let imagePath2 = '';
-
-                    if (result === 0) {
-                        imagePath1 = 'images/like1.png';
-                        imagePath2 = 'images/hate1.png';
-                    } else if (result === 1) {
-                        imagePath1 = 'images/like2.png';
-                        imagePath2 = 'images/hate1.png';
-                    } else if (result === -1) {
-                        imagePath1 = 'images/like1.png';
-                        imagePath2 = 'images/hate2.png';
-                    }
-                    // 이미지 엘리먼트를 생성합니다.
-                    if (imagePath1 && imagePath2) {
-                        let img = document.getElementById('like-img');
-                        let img2 = document.getElementById('hate-img');
-
-                        // 'like-img'가 존재하지 않으면 새로 생성합니다.
-                        if (!img) {
-                            img = document.createElement('img');
-                            img.id = 'like-img';
-                            img.alt = `Image for result ${result}`;
-                            img.width = 30;
-                            img.height = 30;
-                            img.onclick = () => likeImg(img);
-                            imageContainer.appendChild(img);
-                        }
-
-                        // 'hate-img'가 존재하지 않으면 새로 생성합니다.
-                        if (!img2) {
-                            img2 = document.createElement('img');
-                            img2.id = 'hate-img';
-                            img2.alt = `Image for result ${result}`;
-                            img2.width = 30;
-                            img2.height = 30;
-                            img2.onclick = () => likeImg(img2);
-                            imageContainer.appendChild(img2);
-                        }
-
-                        // 이미지 경로를 업데이트합니다.
-                        img.src = imagePath1;
-                        img2.src = imagePath2;
-                    }
-
-                })
-                .catch(error =>{
-                    console.log(error.message);
-                })
-
-        }
 
 
 
@@ -274,63 +172,30 @@
 
         }
 
-        // function likeBtn(param){
-        //     console.log('param => ',param);
-        //     console.log('param2 => ',param.getAttribute('data-id'));
-        //     let status = param.getAttribute('data-id');
-        //     axios.post('/board/changeLike',
-        //         new URLSearchParams(
-        //             { userId: currentUserId,
-        //                 boardId : currentBoardId,
-        //                 status : status
-        //         })
-        //     ).then(data =>{
-        //         console.log('data => ',data);
-        //         if(data.data === 2){
-        //             alert("싫어요를 누른 상태로 누를수없습니다.");
-        //         }else if(data.data === 4){
-        //             console.log('타입은 무엇일까 ', typeof data.data);
-        //             alert("좋아요를 누른 상태로 누를수없습니다.");
-        //         }else{
-        //             getBoardLikes();
-        //             getOneLike();
-        //
-        //         }
-        //     }).catch(error => {
-        //         console.log('error => ',error);
-        //
-        //     })
-        // }
-
-        function likeImg(param) {
-            console.log('param => ', param);
-            console.log('param2 => ', param.id);
-
-            // 이미지의 ID를 통해 상태를 설정합니다.
-            let status = param.id === 'like-img' ? 'g' : 'f';
-
+        function likeBtn(param){
+            console.log('param => ',param);
+            console.log('param2 => ',param.getAttribute('data-id'));
+            let status = param.getAttribute('data-id');
             axios.post('/board/changeLike',
-                new URLSearchParams({
-                    userId: currentUserId,
-                    boardId: currentBoardId,
-                    status: status
+                new URLSearchParams(
+                    { userId: currentUserId,
+                        boardId : currentBoardId,
+                        status : status
                 })
-            ).then(data => {
-                console.log('data => ', data);
-                if (data.data === 2) {
+            ).then(data =>{
+                console.log('data => ',data);
+                if(data.data === "2"){
                     alert("싫어요를 누른 상태로 누를수없습니다.");
-                } else if (data.data === 4) {
-                    console.log('타입은 무엇일까 ', typeof data.data);
+                }else if(data.data === "4"){
                     alert("좋아요를 누른 상태로 누를수없습니다.");
-                } else {
-                    getBoardLikes();
-                    getOneLike();
                 }
             }).catch(error => {
-                console.log('error => ', error);
-            });
-        }
+                console.log('error => ',error);
 
+            })
+
+
+        }
     </script>
    <script src="/js/boardDetail/commentsJs.js"></script>
 </body>

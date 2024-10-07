@@ -31,7 +31,8 @@ public class SecurityConfig {
      * WHITE LIST 등록 시큐리티 상관없이 접근 가능한 URL 등록
      */
     private static final String[] WHITE_LIST= {
-            "/", "/loginPage", "/newUser", "/user/checkEmail", "/user/checkNickName", "/user/register"
+            "/", "/loginPage", "/newUser", "/user/checkEmail", "/user/checkNickName", "/user/register",
+            "/board/view/stream","/board/view","/board/view/*"
     };
 
 

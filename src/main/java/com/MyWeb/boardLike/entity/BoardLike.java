@@ -3,13 +3,16 @@ package com.MyWeb.boardLike.entity;
 import com.MyWeb.board.entity.Board;
 import com.MyWeb.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jdk.jfr.Description;
+import lombok.*;
+
+import java.time.LocalDate;
 
 @Entity
 @Data
 @AllArgsConstructor @NoArgsConstructor
+@Builder
+@ToString(exclude = {"user", "board"})
 public class BoardLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,8 +26,13 @@ public class BoardLike {
     @JoinColumn(name= "board_no", referencedColumnName = "board_no")
     private Board board;
 
-    @Column(name="likes")
-    private int like;
+    @Description("Default = 0 , 좋아요 = 1, 싫어요 = -1")
+    @Column(name = "like_status")
+    private int likeStatus;
 
-    private int dislike;
+
+//    @PrePersist
+//    protected void onCreate(){
+//        this.likeStatus = 0;
+//    };
 }

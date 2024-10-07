@@ -47,12 +47,15 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 #### ===> 작성시는 Summernote 라이브러리 사용 , 파일 첨부시 첨부파일 목록 및 다운로드 구현 <br>
 ### 8. 게시물 수정 & 삭제
 #### ===> 게시물 수정시 첨부파일 삭제(저장시에만 실제로 삭제)
+### 9. 게시물 SSE, 좋아요 기능 추가
+#### ===> 게시물에 좋아요를 누를시 SSE를 활용하여 실시간 변경값 적용 
 ***
 ## * 미완성 & 수정 해야할 목록
 
 ### 1. 디자인 & 검색기능
-#### -> 디자인
-
+#### ===> 디자인
+### 2. 게시물 댓글 관련 SSE로 리팩토링 하기 
+#### ===> 실시간 같은 화면으로 불러오고자 중복된 JS가 많아서 코드가 복잡한 상태 
 
 <img src="./src/main/resources/gitImage/board1.jpg">
 <img src="./src/main/resources/gitImage/board2.jpg">
@@ -64,3 +67,5 @@ https://github.com/taeyeonimda/MyWeb/issues/3#issue-2450296093
 <img src="./src/main/resources/gitImage/redis2.jpg">
 <img src="./src/main/resources/gitImage/boardWrite1.jpg">
 <img src="./src/main/resources/gitImage/boardFileDown.jpg">
+<img src="./src/main/resources/gitImage/boardLikes1.jpg">
+<img src="./src/main/resources/gitImage/boardLikes2.jpg">
