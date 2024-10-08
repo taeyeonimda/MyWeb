@@ -1,8 +1,265 @@
 $(document).ready(() => {
     console.log('READY currentUserId => ', currentUserId);
-
-
 });
+
+//맨처음 댓글 입력창에서 작성눌렀을때
+$(document).on('submit', '#CommentForm', function(event) {
+    commentSubmit(event);
+});
+
+async function commentSubmit(event){
+    event.preventDefault();
+
+    const boardNo = $("#comInsertBoardId").val();
+    const userNo = $("#comInsertId").val();
+    let comContent = $("#reply-content").val();
+    console.log('comContent =>', comContent);
+
+    let contentsCheck = validateInput(comContent);
+    if (!contentsCheck) {
+        alert1("내용을 입력해주세요.");
+        return;
+    }
+
+    const lines = comContent.split('\n');
+    const processedLines = [];
+
+    lines.forEach(function (line) {
+        const trimmedLine = line.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나의 공백으로 대체하고 양쪽 공백 제거
+        processedLines.push(trimmedLine);
+    });
+
+    comContent = processedLines.join('\n'); // 수정된 내용을 다시 합칩니다.
+
+    try{
+        let data = '';
+        await axios.post(`/boards/${boardNo}/comments`, {
+            boardNo: boardNo,
+            userNo: userNo,
+            comContent: comContent
+        })
+            .then(response =>{
+                console.log('response => ',response);
+                data = response.data;
+            })
+            .catch(error =>{
+                console.log(' error =>',error.message);
+            })
+        console.log('data =>',data);
+        if(data === 1){
+            await axios.get(`/boards/${boardNo}/comments`)
+                .then(success =>{
+                    console.log('전체 댓글 가져오기 =>',success)
+                    $("#reply-content").val('');
+                })//axios끝
+                .catch(e =>{
+                    console.warn(e.message);
+                })
+        }
+    }catch(e){
+        console.info(" async 에러! :",e);
+    }
+
+}
+
+//대댓글 남길려고 클릭할떄
+$(document).on('click', '.btn-reply', function(event) {
+    replyBtnClick(event);
+});
+
+function replyBtnClick(event){
+    console.log('event => ',event);
+    let thisText = event.target.innerText;
+    // console.log('this text => ',thisText);
+
+    if(thisText == '댓글달기' ){
+        event.target.innerText = '취소';
+    }else{
+        event.target.innerText = '댓글달기';
+    }
+    let idx = $('.btn-reply').index(event.target);
+    console.log('index11 => ', idx);
+
+    $(".de1Recomment").eq(idx).toggle();
+}
+
+/**
+ * 대댓글 등록시
+ */
+$(document).on('click', '.re-reply-save', function(event) {
+    reCommentSub(event);
+});
+
+async function reCommentSub(event){
+    event.preventDefault();
+    const idx = $(".re-reply-save").index(event.target);
+    console.log('reCommentSub의 Index~~', idx);
+
+    const userNo = $(".comMemberNo").eq(idx).val();
+    //게시물 번호(boradNo)
+    const boardNo = $(".comBoardNo").eq(idx).val();
+    //부모의 댓글 번호
+    const comParentNo = $(".comParentNo").eq(idx).val();
+    //같은 댓글 그룹
+    const depth = $(".comDepth").eq(idx).val();
+    //댓글 깊이
+    const comRef = $(".comRef").eq(idx).val();
+    //게시물
+    let reReplyContent = $(".re-reply-content").eq(idx).val();
+
+    console.log('userNo => ',userNo);
+    console.log('boardNo => ',boardNo);
+    console.log('comParentNo => ',comParentNo);
+    console.log('depth => ',depth);
+    console.log('reReplyContent => ',reReplyContent);
+
+    if (reReplyContent === '') {
+        alert1('내용입력해주세요.');
+        return false;
+    }
+
+
+
+    const originalValue = reReplyContent;
+    const lines = originalValue.split('\n');
+    const processedLines = [];
+    lines.forEach(function(line) {
+        const trimmedLine = line.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나의 공백으로 대체하고 양쪽 공백 제거
+        processedLines.push(trimmedLine);
+    });
+    reReplyContent = processedLines.join('\n');
+
+    try{
+        let data = '';
+        // "/boards/"+boardNo+"/reComments"
+        await axios.post(`/boards/${boardNo}/reComments`,{
+            userNo: userNo,
+            boardNo: boardNo,
+            comParentNo: comParentNo,
+            comContent: reReplyContent,
+            depth: depth,
+            comRef: comRef
+        })
+            .then( response =>{
+                console.log('ReCmoment 첫번째 Response');
+                data = response.data;
+            })
+            .catch( error =>{
+                console.warn('error =>',error.message );
+            })
+
+        if(data===1){
+            await axios.get("/boards/"+boardNo+"/comments",{
+                boardNo : boardNo
+            })
+                .then(success =>{
+                    console.log('ReCommentSub Success => ',success);
+                })
+                .catch(error =>{
+                    console.warn('error =>',error.message);
+                })
+        }
+
+    }catch(e){
+        console.warn('e => ',e.message);
+    }
+}
+
+//대댓글에 댓글
+$(document).on('click', '.btn-reply2', function(event) {
+    replyBtnClick2(event);
+});
+
+function replyBtnClick2(event){
+    console.log('event => ',event);
+    let thisText = event.target.innerText;
+
+    if(thisText == '댓글달기' ){
+        event.target.innerText = '취소';
+    }else{
+        event.target.innerText = '댓글달기';
+    }
+    const idx = $('.btn-reply2').index(event.target);
+    console.log('index22 => ', idx);
+
+    $(".de2Recomment").eq(idx).toggle();
+}
+
+//댓글에 댓글에서 등록버튼 눌렀을때
+$(document).on('click', '.re-reply-save2', function(event) {
+    reCommentSub2(event);
+});
+
+async function reCommentSub2(event){
+    event.preventDefault();
+    const idx = $(".re-reply-save2").index(event.target);
+    console.log('인덱스확인~~', idx);
+
+    const userNo = $(".comMemberNo2").eq(idx).val();
+    //게시물 번호(boradNo)
+    const boardNo = $(".comBoardNo2").eq(idx).val();
+    //부모의 댓글 번호
+    const comParentNo = $(".comParentNo2").eq(idx).val();
+    //같은 댓글 그룹
+    const depth = $(".comDepth2").eq(idx).val();
+    //댓글 깊이
+    const comRef = $(".comRef2").eq(idx).val();
+    //게시물
+    let reReplyContent = $(".re-reply-content2").eq(idx).val();
+
+    console.log('userNo => ',userNo);
+    console.log('boardNo => ',boardNo);
+    console.log('comParentNo => ',comParentNo);
+    console.log('depth => ',depth);
+    console.log('reReplyContent => ',reReplyContent);
+
+    if (reReplyContent == '') {
+        alert1('내용입력해주세요!!!!!!!!!!!!.');
+        return false;
+    }
+
+    const originalValue = reReplyContent;
+    const lines = originalValue.split('\n');
+    const processedLines = [];
+    lines.forEach(function(line) {
+        const trimmedLine = line.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나의 공백으로 대체하고 양쪽 공백 제거
+        processedLines.push(trimmedLine);
+    });
+    reReplyContent = processedLines.join('\n');
+
+    try{
+        let data = '';
+        await axios.post(`/boards/${boardNo}/reComments`,{
+            userNo: userNo,
+            boardNo: boardNo,
+            comParentNo: comParentNo,
+            comContent: reReplyContent,
+            depth: depth,
+            comRef: comRef
+        })
+            .then( response =>{
+                data = response.data;
+            })
+            .catch( error =>{
+                console.warn('error =>',error.message );
+            })
+
+        if(data===1){
+            await axios.get("/boards/"+boardNo+"/comments",{
+                boardNo : boardNo
+            })
+                .then(success =>{
+                    console.log('ReCommentSub2 Success => ',success);
+                })
+                .catch(error =>{
+                    console.warn('error =>',error.message);
+                })
+        }
+
+    }catch(e){
+        console.warn('e => ',e.message);
+    }
+}
 
 //수정버튼 눌렀을때
 $(document).on('click','.modified',function(event){
@@ -92,13 +349,11 @@ async function confirmModification(commentId) {
     }
 }
 
-
 //취소버튼 눌렀을때
 $(document).on('click', '.canceled', function(event) {
     let commentId = event.target.dataset.id;
     cancelModification(commentId);
 });
-
 
 function cancelModification(commentId) {
     console.log('취소 =>', commentId);
@@ -126,289 +381,96 @@ function cancelModification(commentId) {
     textarea.val(originalContent);
 }
 
-
 //삭제버튼 눌렀을때
 $(document).on('click','.deleteP',function(event){
     let commentId = event.target.dataset.id;
     deleteComment(commentId);
-
 })
-async function deleteComment(commentId){
+
+function deleteComment(commentId){
     console.info('여기는 delete Comment => ',commentId);
     try{
-        await axios.get(`/comment/${commentId}/deleteComment`)
-            .then(data=>{
-                if(data.data ==='as'){
-                    alert1('이미 삭제된 댓글입니다.');
-                }else if(data.data ==='s' || data.data === 'ss'){
-                    alert1('댓글이 삭제되었습니다');
 
-                    setTimeout(function() {
-                        location.reload();
-                    }, 3000);
-                }else{
-                    alert1('댓글이 삭제되지않았습니다');
-                }
-            })
-            .catch(error=>{
-                console.log('error => ',error)
-            })
+        Swal.fire({
+            title: "삭제 하시겠습니까 ? ",
+            showCancelButton:true,
+            confirmButtonText:"삭제"
+        }).then(result=>{
+            console.log('삭제 버튼 result ', result);
+            if(result.isConfirmed){
+                axios.get(`/comment/${commentId}/deleteComment`)
+                    .then(data=>{
+                        if(data.data ==='as'){
+                            alert1('이미 삭제된 댓글입니다.');
+                        }else if(data.data ==='s' || data.data === 'ss'){
+                            // alert1('댓글이 삭제되었습니다');
+                            location.reload();
+                            // setTimeout(function() {
+                            //     location.reload();
+                            // }, 3000);
+                        }else{
+                            alert1('댓글이 삭제되지않았습니다');
+                        }
+                    })
+                    .catch(error=>{
+                        console.log('error => ',error)
+                    })
+            }
+        })
+
+        // await axios.get(`/comment/${commentId}/deleteComment`)
+        //     .then(data=>{
+        //         if(data.data ==='as'){
+        //             alert1('이미 삭제된 댓글입니다.');
+        //         }else if(data.data ==='s' || data.data === 'ss'){
+        //             // alert1('댓글이 삭제되었습니다');
+        //             location.reload();
+        //             // setTimeout(function() {
+        //             //     location.reload();
+        //             // }, 3000);
+        //         }else{
+        //             alert1('댓글이 삭제되지않았습니다');
+        //         }
+        //     })
+        //     .catch(error=>{
+        //         console.log('error => ',error)
+        //     })
+
+
     }catch(e){
         console.warn('error => ',e);
     }
 }
 
 
+function updateCommentSection(comments) {
+    let html = '';
+    comments.forEach(comment => {
 
-//맨처음 댓글 입력창에서 작성눌렀을때
-$(document).on('submit', '#CommentForm', function(event) {
-    commentSubmit(event);
-});
-async function commentSubmit(event){
-    event.preventDefault();
+        html += `<div class="commentDiv gray4-border" style="margin-left: ${comment.depth * 10}px;">`;
+        let stringUserNo = String(comment.userNo);
 
-    const boardNo = $("#comInsertBoardId").val();
-    const userNo = $("#comInsertId").val();
-    let comContent = $("#reply-content").val();
-    console.log('comContent =>', comContent);
+        if(comment.depth===0){
 
-    let contentsCheck = validateInput(comContent);
-    if (!contentsCheck) {
-        alert1("내용을 입력해주세요.");
-        return;
-    }
-
-    const lines = comContent.split('\n');
-    const processedLines = [];
-
-    lines.forEach(function (line) {
-        const trimmedLine = line.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나의 공백으로 대체하고 양쪽 공백 제거
-        processedLines.push(trimmedLine);
-    });
-
-    comContent = processedLines.join('\n'); // 수정된 내용을 다시 합칩니다.
-
-    try{
-        let data = '';
-        await axios.post(`/boards/${boardNo}/comments`, {
-            boardNo: boardNo,
-            userNo: userNo,
-            comContent: comContent
-        })
-            .then(response =>{
-                console.log('response => ',response);
-                data = response.data;
-            })
-            .catch(error =>{
-                console.log(' error =>',error.message);
-            })
-        console.log('data =>',data);
-        if(data === 1){
-            await axios.get(`/boards/${boardNo}/comments`)
-                .then(success =>{
-                    console.log('success =>',success)
-                    let html ='';
-                    success.data.forEach(comment =>{
-                        html += `<div class="commentDiv gray4-border" style="margin-left: ${comment.depth * 10}px;">`;
-                        let stringUserNo = String(comment.userNo);
-
-                        if(comment.depth===0){
-                            html += `<div class="contentDiv gray3-border">${comment.comContent}</div>
-                                        <div class="btnWrapper">`;
-                            // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
-                            if (stringUserNo === userNo) {
-                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                                    <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
-                            }
-                            // 댓글달기 버튼
-                            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply">댓글달기</p>
-                                </div>`; // btnWrapper 닫기
-
-
-                            // de1Recomment 폼 추가
-                            html += `<div class="card de1Recomment">
-                                        <form class="de1RecommentForm">
-                                            <div class="card-body">
-                                                <input class="comMemberNo" type="hidden" value='currentUserId' />
-                                                <input class="comParentNo" type="hidden" value="${comment.id}" />
-                                                <input class="comDepth" type="hidden" value="${comment.depth}" />
-                                                <input class="comBoardNo" type="hidden" value="${comment.boardNo}" />
-                                                <input class="comRef" type="hidden" value="${comment.comRef}" />
-                                                <textarea class="form-control re-reply-content"></textarea>
-                                                <br>
-                                                <button type="submit" class="btn btn-primary re-reply-save">등록</button>
-                                            </div>
-                                        </form>
-                                    </div>`; // de1Recomment 닫기
-                        }
-                        //depth가 0이아닐때
-                        else{
-                            // depth가 0이 아닐 때
-                            html += `<!-- <p> => ${comment.comContent}</p>-->
-                                    <div class="contentDiv gray3-border">
-                                    <textarea class="form-control textarea-Class" row="1"
-                                          data-id="${comment.id}"  readonly="true">${comment.comContent}</textarea>
-                                    </div>
-                                        <div class="btnWrapper">`;
-
-                            if (stringUserNo === userNo) {
-                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                                            <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
-                                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
-                            }
-
-                            // 댓글달기 버튼 및 de2Recomment 폼 추가
-                            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply2">댓글달기</p>
-                                    </div> <!-- btnWrapper 닫기 -->
-                                    <div class="card de2Recomment">
-                                        <form class="de2RecommentForm">
-                                            <div class="card-body">
-                                                <input class="comMemberNo2" type="hidden" value="currentUserId" />
-                                                <input class="comParentNo2" type="hidden" value="${comment.id}" />
-                                                <input class="comDepth2" type="hidden" value="${comment.depth}" />
-                                                <input class="comBoardNo2" type="hidden" value="${comment.boardNo}" />
-                                                <input class="comRef2" type="hidden" value="${comment.comRef}" />
-                                                <textarea class="form-control re-reply-content2"></textarea>
-                                                <br>
-                                                <button type="submit" class="btn btn-primary re-reply-save2">등록</button>
-                                            </div>
-                                        </form>
-                                    </div>`; // de2Recomment 닫기
-                        }
-                        html += `</div>`; // commentDiv 닫기
-                    })//forEach끝
-                    $(".originComment").html(html);
-                    $("#reply-content").val('');
-                })//axios끝
-                .catch(e =>{
-                    console.warn(e.message);
-                })
-        }
-    }catch(e){
-        console.info(" async 에러! :",e);
-    }
-
-}
-
-
-
-
-$(document).on('click', '.btn-reply', function(event) {
-    replyBtnClick(event);
-});
-
-function replyBtnClick(event){
-    console.log('event => ',event);
-    let thisText = event.target.innerText;
-    // console.log('this text => ',thisText);
-
-    if(thisText == '댓글달기' ){
-        event.target.innerText = '취소';
-    }else{
-        event.target.innerText = '댓글달기';
-    }
-    let idx = $('.btn-reply').index(event.target);
-    console.log('index11 => ', idx);
-
-    $(".de1Recomment").eq(idx).toggle();
-}
-
-/**
- * 댓글에 댓글 달기
- */
-$(document).on('click', '.re-reply-save', function(event) {
-    reCommentSub(event);
-});
-async function reCommentSub(event){
-    event.preventDefault();
-    const idx = $(".re-reply-save").index(event.target);
-    console.log('인덱스확인~~', idx);
-
-    const userNo = $(".comMemberNo").eq(idx).val();
-    //게시물 번호(boradNo)
-    const boardNo = $(".comBoardNo").eq(idx).val();
-    //부모의 댓글 번호
-    const comParentNo = $(".comParentNo").eq(idx).val();
-    //같은 댓글 그룹
-    const depth = $(".comDepth").eq(idx).val();
-    //댓글 깊이
-    const comRef = $(".comRef").eq(idx).val();
-    //게시물
-    let reReplyContent = $(".re-reply-content").eq(idx).val();
-
-    console.log('userNo => ',userNo);
-    console.log('boardNo => ',boardNo);
-    console.log('comParentNo => ',comParentNo);
-    console.log('depth => ',depth);
-    console.log('reReplyContent => ',reReplyContent);
-
-    if (reReplyContent == '') {
-        alert1('내용입력해주세요.');
-        return false;
-    }
-
-
-
-    const originalValue = reReplyContent;
-    const lines = originalValue.split('\n');
-    const processedLines = [];
-    lines.forEach(function(line) {
-        const trimmedLine = line.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나의 공백으로 대체하고 양쪽 공백 제거
-        processedLines.push(trimmedLine);
-    });
-    reReplyContent = processedLines.join('\n');
-
-    try{
-        let data = '';
-        // "/boards/"+boardNo+"/reComments"
-        await axios.post(`/boards/${boardNo}/reComments`,{
-            userNo: userNo,
-            boardNo: boardNo,
-            comParentNo: comParentNo,
-            comContent: reReplyContent,
-            depth: depth,
-            comRef: comRef
-        })
-            .then( response =>{
-                data = response.data;
-            })
-            .catch( error =>{
-                console.warn('error =>',error.message );
-            })
-
-        if(data===1){
-            await axios.get("/boards/"+boardNo+"/comments",{
-                boardNo : boardNo
-            })
-                .then(success =>{
-                    let html = '';
-                    success.data.forEach( comment =>{
-                        html += `<div class="commentDiv gray4-border" style="margin-left: ${comment.depth * 10}px;">`;
-                        let stringUserNo = String(comment.userNo);
-                        console.group();
-                        console.info('stringUserNo {} {} ',typeof stringUserNo, stringUserNo);
-                        console.info('currentUserId {} {} ',typeof currentUserId, currentUserId);
-
-                        console.groupEnd();
-                        if (comment.depth === 0) {
-                            html += `<div class="contentDiv gray3-border">${comment.comContent}</div>
-                        <div class="btnWrapper">`;
-
-                            // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
-                            if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
-                            }
-
-                            // 댓글달기 버튼
-                            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply">댓글달기</p>
-                        </div>`; // btnWrapper 닫기
-
-                            // de1Recomment 폼 추가
-                            html += `<div class="card de1Recomment">
+            html += `<div class="contentDiv gray3-border">
+                        <textarea class="form-control textarea-Class"
+                              data-id="${comment.id}"  readonly="readonly">${comment.comContent}</textarea>
+                     </div>
+                            <div class="btnWrapper">`;
+            // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
+            if (stringUserNo === currentUserId) {
+                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                         <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
+                        <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
+            }
+            // 댓글달기 버튼
+            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply">댓글달기</p>
+                    </div>`; // btnWrapper 닫기
+            // de1Recomment 폼 추가
+            html += `<div class="card de1Recomment">
                             <form class="de1RecommentForm">
                                 <div class="card-body">
-                                    <input class="comMemberNo" type="hidden" value='currentUserId' />
+                                    <input class="comMemberNo" type="hidden" value=`+currentUserId+` />
                                     <input class="comParentNo" type="hidden" value="${comment.id}" />
                                     <input class="comDepth" type="hidden" value="${comment.depth}" />
                                     <input class="comBoardNo" type="hidden" value="${comment.boardNo}" />
@@ -419,28 +481,30 @@ async function reCommentSub(event){
                                 </div>
                             </form>
                         </div>`; // de1Recomment 닫기
+        }
+        //depth가 0이아닐때
+        else{
+            // depth가 0이 아닐 때
+            html += `<!-- <p> => ${comment.comContent}</p>-->
+                        <div class="contentDiv gray3-border">
+                        <textarea class="form-control textarea-Class" row="1"
+                              data-id="${comment.id}"  readonly="true">${comment.comContent}</textarea>
+                        </div>
+                            <div class="btnWrapper">`;
 
-                        } else {
-                            // depth가 0이 아닐 때
-                            html += `  <div class="contentDiv gray3-border">
-                                        <textarea class="form-control textarea-Class" row="1"
-                                          data-id="${comment.id}"  readonly="true">${comment.comContent}</textarea>
-                                        </div>
-                        <div class="btnWrapper">`;
+            if (stringUserNo === currentUserId) {
+                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
+                                <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
+                                <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
+            }
 
-                            if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                                        <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
-                            }
-
-                            // 댓글달기 버튼 및 de2Recomment 폼 추가
-                            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply2">댓글달기</p>
+            // 댓글달기 버튼 및 de2Recomment 폼 추가
+            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply2">댓글달기</p>
                         </div> <!-- btnWrapper 닫기 -->
                         <div class="card de2Recomment">
                             <form class="de2RecommentForm">
                                 <div class="card-body">
-                                    <input class="comMemberNo2" type="hidden" value="currentUserId" />
+                                    <input class="comMemberNo2" type="hidden" value=`+currentUserId+` />
                                     <input class="comParentNo2" type="hidden" value="${comment.id}" />
                                     <input class="comDepth2" type="hidden" value="${comment.depth}" />
                                     <input class="comBoardNo2" type="hidden" value="${comment.boardNo}" />
@@ -451,195 +515,13 @@ async function reCommentSub(event){
                                 </div>
                             </form>
                         </div>`; // de2Recomment 닫기
-                        }
-
-                        html += `</div>`; // commentDiv 닫기
-                    })//forEach끝
-                    $(".originComment").html(html);
-                    $("#reply-content").val('');
-                })
-                .catch(error =>{
-                    console.warn('error =>',error.message);
-                })
         }
-
-    }catch(e){
-        console.warn('e => ',e.message);
-    }
-}
+        html += `</div>`; // commentDiv 닫기
 
 
-//대댓글에 댓글
-$(document).on('click', '.btn-reply2', function(event) {
-    replyBtnClick2(event);
-});
-
-function replyBtnClick2(event){
-    console.log('event => ',event);
-    let thisText = event.target.innerText;
-
-    if(thisText == '댓글달기' ){
-        event.target.innerText = '취소';
-    }else{
-        event.target.innerText = '댓글달기';
-    }
-    const idx = $('.btn-reply2').index(event.target);
-    console.log('index22 => ', idx);
-
-    $(".de2Recomment").eq(idx).toggle();
-}
-
-//댓글에 댓글에서 등록버튼 눌렀을때
-$(document).on('click', '.re-reply-save2', function(event) {
-    reCommentSub2(event);
-});
-
-async function reCommentSub2(event){
-    event.preventDefault();
-    const idx = $(".re-reply-save2").index(event.target);
-    console.log('인덱스확인~~', idx);
-
-    const userNo = $(".comMemberNo2").eq(idx).val();
-    //게시물 번호(boradNo)
-    const boardNo = $(".comBoardNo2").eq(idx).val();
-    //부모의 댓글 번호
-    const comParentNo = $(".comParentNo2").eq(idx).val();
-    //같은 댓글 그룹
-    const depth = $(".comDepth2").eq(idx).val();
-    //댓글 깊이
-    const comRef = $(".comRef2").eq(idx).val();
-    //게시물
-    let reReplyContent = $(".re-reply-content2").eq(idx).val();
-
-    console.log('userNo => ',userNo);
-    console.log('boardNo => ',boardNo);
-    console.log('comParentNo => ',comParentNo);
-    console.log('depth => ',depth);
-    console.log('reReplyContent => ',reReplyContent);
-
-    if (reReplyContent == '') {
-        alert1('내용입력해주세요!!!!!!!!!!!!.');
-        return false;
-    }
-
-
-    const originalValue = reReplyContent;
-    const lines = originalValue.split('\n');
-    const processedLines = [];
-    lines.forEach(function(line) {
-        const trimmedLine = line.replace(/\s+/g, ' ').trim(); // 연속된 공백을 하나의 공백으로 대체하고 양쪽 공백 제거
-        processedLines.push(trimmedLine);
     });
-    reReplyContent = processedLines.join('\n');
-
-    try{
-        let data = '';
-        // "/boards/"+boardNo+"/reComments"
-        await axios.post(`/boards/${boardNo}/reComments`,{
-            userNo: userNo,
-            boardNo: boardNo,
-            comParentNo: comParentNo,
-            comContent: reReplyContent,
-            depth: depth,
-            comRef: comRef
-        })
-            .then( response =>{
-                data = response.data;
-            })
-            .catch( error =>{
-                console.warn('error =>',error.message );
-            })
-
-        if(data===1){
-            await axios.get("/boards/"+boardNo+"/comments",{
-                boardNo : boardNo
-            })
-                .then(success =>{
-                    let html = '';
-                    success.data.forEach( comment =>{
-                        html += `<div class="commentDiv gray4-border" style="margin-left: ${comment.depth * 10}px;">`;
-                        let stringUserNo = String(comment.userNo);
-
-                        if (comment.depth === 0) {
-                            html += `
-<!-- <div class="contentDiv gray3-border">${comment.comContent}</div> -->
-                            <div class="contentDiv gray3-border">
-                                <textarea class="form-control textarea-Class" row="1"
-                                          data-id="${com.id}"  readonly="true">${comment.comContent}</textarea>
-                            </div>
-                        <div class="btnWrapper">`;
-
-                            // 사용자 ID가 일치할 경우 수정 및 삭제 버튼 추가
-                            if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                                         <p class="text-body-secondary canceled pBtn gray6" data-id="${comment.id}">취소</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
-                            }
-
-                            // 댓글달기 버튼
-                            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply">댓글달기</p>
-                        </div>`; // btnWrapper 닫기
-
-                            // de1Recomment 폼 추가
-                            html += `<div class="card de1Recomment">
-                            <form class="de1RecommentForm">
-                                <div class="card-body">
-                                    <input class="comMemberNo" type="hidden" value="currentUserId" />
-                                    <input class="comParentNo" type="hidden" value="${comment.id}" />
-                                    <input class="comDepth" type="hidden" value="${comment.depth}" />
-                                    <input class="comBoardNo" type="hidden" value="${comment.boardNo}" />
-                                    <input class="comRef" type="hidden" value="${comment.comRef}" />
-                                    <textarea class="form-control re-reply-content"></textarea>
-                                    <br>
-                                    <button type="submit" class="btn btn-primary re-reply-save">등록</button>
-                                </div>
-                            </form>
-                        </div>`; // de1Recomment 닫기
-
-                        } else {
-                            // depth가 0이 아닐 때
-                            html += `<p> => ${comment.comContent}</p>
-                        <div class="btnWrapper">`;
-
-                            if (stringUserNo === currentUserId) {
-                                html += `<p class="text-body-secondary modified pBtn gray6" data-id="${comment.id}">수정</p>
-                            <p class="text-body-secondary deleteP pBtn gray6" data-id="${comment.id}">삭제</p>`;
-                            }
-
-                            // 댓글달기 버튼 및 de2Recomment 폼 추가
-                            html += `<p class="text-body-secondary pBtn gray6 reCommentBtn btn-reply2">댓글달기</p>
-                        </div> <!-- btnWrapper 닫기 -->
-                        <div class="card de2Recomment">
-                            <form class="de2RecommentForm">
-                                <div class="card-body">
-                                    <input class="comMemberNo2" type="hidden" value="currentUserId" />
-                                    <input class="comParentNo2" type="hidden" value="${comment.id}" />
-                                    <input class="comDepth2" type="hidden" value="${comment.depth}" />
-                                    <input class="comBoardNo2" type="hidden" value="${comment.boardNo}" />
-                                    <input class="comRef2" type="hidden" value="${comment.comRef}" />
-                                    <textarea class="form-control re-reply-content2"></textarea>
-                                    <br>
-                                    <button type="submit" class="btn btn-primary re-reply-save2">등록</button>
-                                </div>
-                            </form>
-                        </div>`; // de2Recomment 닫기
-                        }
-
-                        html += `</div>`; // commentDiv 닫기
-                    })//forEach끝
-                    $(".originComment").html(html);
-                    $("#reply-content").val('');
-                })
-                .catch(error =>{
-                    console.warn('error =>',error.message);
-                })
-        }
-
-    }catch(e){
-        console.warn('e => ',e.message);
-    }
+    $(".originComment").html(html);
 }
-
 
 //입력에서 빈값 혹은 빈값으로 줄만넘겼을때 체크하는거
 function validateInput(inputValue) {

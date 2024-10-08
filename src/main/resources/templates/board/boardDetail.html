@@ -15,9 +15,6 @@
 
             <div class="card-header">
                 <h1 th:text="${board.get().boardTitle}"></h1>
-<!--                -->
-<!--                <input type="text" class="form-control d-none" id="edit-title"-->
-<!--                       th:value="${board.get().boardTitle}">-->
             </div>
 
             <div class="card-body">
@@ -36,27 +33,21 @@
                     </span>
                 </p>
                 <div class="card-text card-content" th:utext="${board.get().boardContent}"></div>
-<!--                <button th:data-id="g" onclick="likeBtn(this)">좋아요버튼</button>-->
-<!--                <button th:data-id="f" onclick="likeBtn(this)">싫어요 버튼</button>-->
 
                 <img src="/images/like1.png" alt="Like" id="like-img" onclick="likeImg(this)" width="30" height="30">
                 <img src="/images/hate1.png" alt="Hate" id="hate-img" onclick="likeImg(this)" width="30" height="30">
 
                 <div id="image-container"></div>
 
-
                 <span>[[${boardSum}]]</span>
-
                 <p id="likeCount">좋아요 숫자 => </p>
+
                 <th:block th:if="${currentUser.id == board.get().getUser().id}">
                     <a th:href="@{/boardEdit/{id}(id = ${board.get().id})}" >수정!!!</a>
                     <p th:onclick="delConfirm()">삭제!!!</p>
-<!--                    th:href="@{/boardDel/{id}(id = ${board.get().id})}"-->
 
                 </th:block>
 
-<!--                <p class="text-body-secondary boardModified gray6" id="edit-btn" th:data-id="${board.get().id}">수정</p>-->
-<!--                <p class="text-body-secondary boardDelete gray6" th:data-id="${board.get().id}">삭제</p>-->
             </div>
 
             <!-- 댓글 입력 영역 -->
@@ -169,6 +160,15 @@
                 let receivedCount = event.data;
                 $('#likeCount').text(receivedCount);
             });
+
+            source.addEventListener("getComments",  function (event)  {
+                console.log('getComments event =====>',event);
+                let comments = JSON.parse(event.data);
+                console.log('Parsed comments => ',comments);
+
+                // 변환된 comments 데이터를 이용해 댓글 목록을 업데이트
+                updateCommentSection(comments);
+            });
         });
 
         function getBoardLikes(){
@@ -274,33 +274,6 @@
 
         }
 
-        // function likeBtn(param){
-        //     console.log('param => ',param);
-        //     console.log('param2 => ',param.getAttribute('data-id'));
-        //     let status = param.getAttribute('data-id');
-        //     axios.post('/board/changeLike',
-        //         new URLSearchParams(
-        //             { userId: currentUserId,
-        //                 boardId : currentBoardId,
-        //                 status : status
-        //         })
-        //     ).then(data =>{
-        //         console.log('data => ',data);
-        //         if(data.data === 2){
-        //             alert("싫어요를 누른 상태로 누를수없습니다.");
-        //         }else if(data.data === 4){
-        //             console.log('타입은 무엇일까 ', typeof data.data);
-        //             alert("좋아요를 누른 상태로 누를수없습니다.");
-        //         }else{
-        //             getBoardLikes();
-        //             getOneLike();
-        //
-        //         }
-        //     }).catch(error => {
-        //         console.log('error => ',error);
-        //
-        //     })
-        // }
 
         function likeImg(param) {
             console.log('param => ', param);
@@ -330,8 +303,7 @@
                 console.log('error => ', error);
             });
         }
-
     </script>
-   <script src="/js/boardDetail/commentsJs.js"></script>
+    <script src="/js/boardDetail/commentsJs.js"></script>
 </body>
 </html>

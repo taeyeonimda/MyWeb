@@ -221,6 +221,8 @@ public class BoardController {
 //        System.out.println("bcList => "+bcList);
         //댓글 작성 후 기존 bcList덮어쓰기
         model.addAttribute("bcList", bcList);
+
+        sseEmitters.getComments(bcList,boardNo);
         return bcList;
     }
 
