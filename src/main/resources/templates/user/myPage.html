@@ -80,6 +80,13 @@
         border: 2px solid black !important;
         border-width:2px;
     }
+    #staticEmail{
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    /*#staticAddress{*/
+    /*    border:1px solid red;*/
+    /*}*/
 </style>
 <body>
 <div th:replace="~{/fragments/header.html}"></div>
@@ -135,9 +142,12 @@
                     <div class="col-sm-10">
                         <input type="text" readonly="readonly" class="form-control addressInput"
                                id="staticAddress" th:value="${currentUser.address}">
+<!--                        <input type="text" readonly="readonly" class="form-control addressInput"-->
+<!--                               id="staticAddress2" th:value="${currentUser.address2}"-->
+<!--                               style="display:none;">-->
+                        <hr>
                         <input type="text" readonly="readonly" class="form-control addressInput"
-                               id="staticAddress2" th:value="${currentUser.address2}"
-                               style="display:none;">
+                               id="staticAddress2" th:value="${currentUser.address2}">
                         <button class="btn btn-primary" type="button" id="daumBtn"
                                 style="display:none;" onclick="findAddress()">주소 찾기</button>
                     </div>
@@ -146,7 +156,7 @@
                 <div class="btnDiv">
                     <button type="button" id="editBtn" class="btn beforeMod" onclick="startEdit()">수정하기</button>
                     <button type="button" id="completeBtn" class="btn afterMod" style="display:none;" onclick="completeEdit()">수정 완료</button>
-                    <button type="button" id="cancelBtn" class="btn cancelBtn" onclick="cancelEdit()">취소</button>
+                    <button type="button" id="cancelBtn" class="btn cancelBtn" style="display:none;" onclick="cancelEdit()">취소</button>
                 </div>
 
             </form>
@@ -157,6 +167,7 @@
 
 </div> <!-- /container -->
 <script>
+    let oldObj = {};
 
     function toggle2(){
         console.log('토글2?');
@@ -292,12 +303,14 @@
     }
 
     function toggleReadonly(isReadonly) {
-        console.log('현재 상태 =>', isReadonly ? '읽기 전용' : '수정 가능');
-        isBoolean = isReadonly;
+        // console.log('현재 상태 =>', isReadonly ? '읽기 전용' : '수정 가능');
+
+
         const userId = $('#userId').val();
         console.log('userId =>',userId);
 
-        const addressInput = $('.addressInput');
+        const addressInput = $('#staticAddress');
+        console.log('toggle address => ', addressInput);
         const nicknameInput = $('.nicknameInput');
         const editBtn = $('#editBtn');
 
@@ -306,6 +319,8 @@
 
         const myProfilePhotoInput = $('#myProfilePhoto');
         const profilePhoto = myProfilePhotoInput[0].files;
+        const cancelBtn = $('#cancelBtn');
+
         console.log('profilePhoto11  => ',profilePhoto);
 
         addressInput2.prop('readonly', isReadonly);
@@ -316,31 +331,68 @@
         const inProfilePhoto = $('.inProfilePhoto');
 
         if(!isReadonly){
+            cancelBtn.css('display','');
             editBtn.text('수정 완료');
 
             addressInput.addClass('modInput');
+            addressInput2.addClass('modInput');
+
             nicknameInput.addClass('modInput');
 
-            addressInput2.css('display','block');
+            // addressInput2.css('display','block');
+
             daumBtn.css('display','block');
             myProfilePhotoInput.css('display','block');
             inProfilePhoto.css('display','none');
         }else{
+            const preview = document.getElementById('preview');
+            preview.src = '#';
+            preview.style.display = 'none';
+            console.log('oldObj => ',oldObj.emailVal);
+
+            cancelBtn.css('display','none');
+
+            if(oldObj.emailVal !== undefined){
+                $('#staticEmail').val(oldObj.emailVal);
+                $('#staticNickName').val(oldObj.nickNameVal);
+                $('#staticAddress').val(oldObj.address1);
+                $('#staticAddress2').val(oldObj.address2);
+            }
+
+            const nickError = document.getElementById('nickError');
+            nickError.textContent = '';
+
             editBtn.text('수정 하기');
 
             addressInput.removeClass('modInput');
+            addressInput2.removeClass('modInput');
             nicknameInput.removeClass('modInput');
 
-            addressInput2.css('display','none');
+            // addressInput2.css('display','none');
+
             daumBtn.css('display','none');
             myProfilePhotoInput.css('display','none');
-            inProfilePhoto.css('display','block');
+            inProfilePhoto.css('display','');
 
 
         }
     }
 
     function startEdit() {
+        let emailVal = $('#staticEmail').val();
+        let nickNameVal = $('#staticNickName').val();
+        let address1 = $('#staticAddress').val();
+        let address2 = $('#staticAddress2').val();
+
+        oldObj = {
+            emailVal: emailVal,
+            nickNameVal: nickNameVal,
+            address1: address1,
+            address2: address2
+        };
+
+
+
         toggleReadonly(false);
         $('#editBtn').hide();
         $('#completeBtn').show();
@@ -353,7 +405,7 @@
         const formData = new FormData();
 
             const userId = $('#userId').val();
-            const addressInputVal = $('.addressInput').val();
+            const addressInputVal = $('#staticAddress').val();
             const addressInput2Val = $('#staticAddress2').val();
             const nicknameInputVal = $('.nicknameInput').val();
 
@@ -398,10 +450,15 @@
     }
 
     function cancelEdit() {
-        toggleReadonly(true);
+
+        // $('#staticEmail').val(oldObj.emailVal);
+        // $('#staticNickName').val(oldObj.nickNameVal);
+        // $('#staticAddress').val(oldObj.address1);
+        // $('#staticAddress2').val(oldObj.address2);
+
+        toggleReadonly(true,oldObj);
         $('#completeBtn').hide();
         $('#editBtn').show();
-        // 취소 시 실행할 추가 작업을 여기에 작성하세요.
     }
 
 

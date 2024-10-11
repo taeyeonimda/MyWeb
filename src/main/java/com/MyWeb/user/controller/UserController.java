@@ -1,11 +1,13 @@
 package com.MyWeb.user.controller;
 
 import com.MyWeb.common.FileRename;
+import com.MyWeb.mail.service.MailService;
 import com.MyWeb.user.dto.UserDto;
 import com.MyWeb.user.entity.CustomUserDetails;
 import com.MyWeb.user.entity.User;
 import com.MyWeb.user.service.UserService;
 import jakarta.validation.Valid;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 @Controller
+@Log4j2
 public class UserController {
 
     @Value("${file.user-profile}")
@@ -33,33 +36,14 @@ public class UserController {
 
     private final UserService userService;
     private final FileRename fileRename;
+    private final MailService mailService;
 
-    public UserController(UserService userService, FileRename fileRename) {
+    public UserController(UserService userService, FileRename fileRename, MailService mailService) {
         this.userService = userService;
         this.fileRename = fileRename;
+        this.mailService = mailService;
     }
 
-//    @PostMapping("/user/register")
-//    @ResponseBody
-//    public String insertUser(User u,@RequestParam("userEmail") String userEmail,
-//                             @RequestParam("userPwd") String userPwd,
-//                             @RequestParam("nickName") String nickName,
-//                             @RequestParam("address") String address,
-//                             @RequestParam("address2") String address2) {
-//        User users = new User();
-//        users.setUserEmail(userEmail);
-//        users.setUserPwd(userPwd);
-//        users.setNickName(nickName);
-//        users.setAddress(address);
-//        System.out.println("인서트 컨트롤러 users => "+users);
-//
-//        int user = userService.saveUser(u);
-//        if (user >= 1) {
-//            return "success";
-//        } else {
-//            return "0";
-//        }
-//    }
 
     @PostMapping("/user/register")
     @ResponseBody
@@ -67,7 +51,7 @@ public class UserController {
         if (result.hasErrors()) {
             return "유효성 검사에 실패했습니다.";
         }
-        System.out.println("userDto :::: "+userDto);
+//        System.out.println("userDto :::: "+userDto);
 
         User user = new User();
         user.setUserEmail(userDto.getUserEmail());
@@ -77,7 +61,7 @@ public class UserController {
         user.setAddress2(userDto.getAddress2());
         int userSaveResult = userService.saveUser(user);
 
-        System.out.println("인서트 컨트롤러 users => " + user);
+//        System.out.println("인서트 컨트롤러 users => " + user);
         if (userSaveResult >= 1) {
             return "success";
         } else {
@@ -92,7 +76,7 @@ public class UserController {
     @ResponseBody
     public String checkEmail(@RequestParam("userEmails") String userEmail) {
         Optional<User> user = userService.checkEmail(userEmail);
-        System.out.println("checkEmail => "+user);
+//        System.out.println("checkEmail => "+user);
         return (user.isEmpty()) ? "0" : "1";
     }
 
@@ -144,7 +128,21 @@ public class UserController {
         }
     }
 
+    @PostMapping("/user/getPassword")
+    @ResponseBody
+    public void getMyPassword(@RequestParam("userEmail")String userEmail
+    ){
+        log.info("UserEmail => {} ",userEmail);
+        Optional<User> findUser  = userService.findByUserEmail(userEmail);
 
+        if(findUser.isPresent()){
+            log.info(" FIND USER => {}",findUser);
+            String findEmail = findUser.get().getUserEmail();
+            mailService.sendMail(findEmail);
+        }else{
+            System.out.println("없는 이메일입니다.");
+        }
+    }
 
 
 
@@ -169,6 +167,14 @@ public class UserController {
     @GetMapping("/myPage")
     public String myPage(){
         return "user/myPage";
+    }
+
+    /**
+     * 비밀번호 찾기 이동페이지
+     */
+    @GetMapping("/findPassword")
+    public String goFindPassword(){
+        return "user/findPassword";
     }
 
 }

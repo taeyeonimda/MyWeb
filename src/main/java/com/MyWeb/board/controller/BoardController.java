@@ -55,9 +55,6 @@ public class BoardController {
     private final FileService fileService;
     private final FileRepository fileRepository;
     private final BoardLikeService boardLikeService;
-    private final SseEmitterService sseEmitterService;
-//    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
     private final SseEmitters sseEmitters;
 
 
@@ -75,36 +72,8 @@ public class BoardController {
         this.fileService = fileService;
         this.fileRepository = fileRepository;
         this.boardLikeService = boardLikeService;
-        this.sseEmitterService = sseEmitterService;
         this.sseEmitters = sseEmitters;
     }
-
-    /**
-     *  기존에 사용하던목록 아래 댓글 갯수 + 좋아요 가져오는거로 변경
-     */
-//    @GetMapping("/boards")
-//    public String listBoards(Model model,
-//                             @RequestParam(name="page",defaultValue = "1")int page,
-//                             @RequestParam(name="size",defaultValue = "10")int size){
-//        List<Board> boards = boardService.getBoardsWithPaging(page,size);
-//        log.info("boards => {} ",boards);
-//        int boardCount = boardService.getBoardCount();
-//        int maxPage = (int) Math.ceil((double) boardCount / size);
-//
-//        // 현재 페이지 그룹 계산
-//        int currentGroup = (page - 1) / 5;
-//        int startPage = currentGroup * 5 + 1;
-//        int endPage = Math.min(startPage + 4, maxPage);
-//
-//        model.addAttribute("boards", boards);
-//        model.addAttribute("size", size);
-//        model.addAttribute("maxPage", maxPage);
-//        model.addAttribute("page", page);
-//        model.addAttribute("startPage", startPage);
-//        model.addAttribute("endPage", endPage);
-//
-//        return "board/boards";
-//    }
 
     //게시판 목록 불러오기
     @GetMapping("/boards")
@@ -132,26 +101,6 @@ public class BoardController {
         return "board/boards";
     }
 
-//    //게시물 하나 불러오기
-//    @GetMapping("/getBoard")
-//    public String getOneBoard(@RequestParam("boardNo")Long id,
-//                              Principal principal,
-//                              Model model){
-//        System.out.println(
-//                "currentUSER" + model.getAttribute("currentUser"));
-//
-//        Optional<Board> board = boardService.getOneBoard(id);
-//        if (board.isPresent()) {
-//            model.addAttribute("board", board);
-//        }
-//
-//        List<BoardCommentDTO> bcList = boardService.getAllComment(id);
-//        if (!bcList.isEmpty()) {
-//            model.addAttribute("bcList", bcList);
-//            System.out.println("bcList 여기니 => " + bcList);
-//        }
-//        return "board/boardDetail";
-//    }
 
     //게시물 하나 불러오기
     @GetMapping("/getBoard")

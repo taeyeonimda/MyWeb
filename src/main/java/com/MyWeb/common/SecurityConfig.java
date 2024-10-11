@@ -32,7 +32,7 @@ public class SecurityConfig {
      */
     private static final String[] WHITE_LIST= {
             "/", "/loginPage", "/newUser", "/user/checkEmail", "/user/checkNickName", "/user/register",
-            "/board/view/stream","/board/view","/board/view/*"
+            "/findPassword", "/board/view/stream","/board/view","/board/view/*", "/user/getPassword"
     };
 
 

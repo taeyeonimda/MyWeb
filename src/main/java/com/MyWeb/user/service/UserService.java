@@ -111,4 +111,8 @@ public class UserService implements UserDetailsService {
     public Optional<User> findById(Long memberNo) {
         return userRepository.findById(memberNo);
     }
+
+    public Optional<User> findByUserEmail(String userEmail) {
+        return userRepository.findByUserEmail(userEmail);
+    }
 }

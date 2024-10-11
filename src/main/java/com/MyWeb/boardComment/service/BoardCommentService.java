@@ -39,13 +39,27 @@ public class BoardCommentService {
     }
 
     @Transactional
-    public void deleteBoardComment(BoardComment boardComment) {
+    public void deleteBoardComment(Long parentId, BoardComment boardComment) {
+        Optional<BoardComment> parentCommentOptional = boardCommentRepository.findById(parentId);
+        if (parentCommentOptional.isPresent()) {
+            BoardComment parentComment = parentCommentOptional.get();
+            int currentChildCount = parentComment.getComChild();
+
+            if (currentChildCount > 0) {
+                parentComment.setComChild(currentChildCount - 1);
+                boardCommentRepository.save(parentComment);
+            }
+        }
         boardCommentRepository.delete(boardComment);
+    }
+
+    @Transactional
+    public int changeDeleteContent(String content, Long commentId) {
+        return boardCommentRepository.changeDeleteContent(content,commentId);
     }
 
     @Transactional
     public int changeContent(String content, Long commentId) {
         return boardCommentRepository.changeContent(content,commentId);
     }
-
 }

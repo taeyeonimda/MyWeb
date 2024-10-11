@@ -25,21 +25,24 @@ public class BoardCommentController {
         log.info("commentId => {}",commentId);
         Optional<BoardComment> bcList = boardCommentService.findById(commentId);
         BoardComment boardComment = null;
+
         int updateResult = 0;
         if(bcList.isPresent()) {
+
             boardComment = bcList.get();
             int childCount = boardComment.getComChild();
             boolean isDelete = boardComment.isComDelete();
+            Long parentId = (long) boardComment.getComParentNo();
 
             if(isDelete){
                 return "as";
             }else if(childCount == 0){
-                boardCommentService.deleteBoardComment(boardComment);
+                boardCommentService.deleteBoardComment(parentId,boardComment);
                 result = "s";
             }else {
                 String content = "[삭제된 내용입니다]";
 
-                updateResult = boardCommentService.changeContent(content,commentId);
+                updateResult = boardCommentService.changeDeleteContent(content,commentId);
                 result = updateResult == 1 ? "ss" : "e";
             }
         }else{
